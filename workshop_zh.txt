@@ -1,0 +1,34 @@
+﻿[h1]更好的MOD菜单[/h1]
+[h2] 🧠 1. 简介 [/h2]
+是否厌倦了为MOD排序时总是点一年？用这个MOD一键置顶/置底！首次启用需要重启游戏。
+
+[url=https://github.com/JMC2002/Duckov-BetterModManager] Github仓库 [/url]
+
+[h2] ⚙️ 2. 功能 [/h2]
+[list]
+    [*] 在MOD管理页面为每个条目增添了两个按钮，分别代表将MOD扔到最上面/扔到最下面，理论上等价于按n次上移/下移
+[/list]
+
+[h2] 🔔 3. 提醒 [/h2]
+[list]
+    [*] 本MOD可安全卸载，理论上完全不会影响存档
+    [*] 首次启动MOD需要重启游戏
+    [*] 本MOD不依赖任何前置，理论上不依赖任何顺序，但如果你是Mac电脑且订阅了Harmony.lib模组且本模组无法生效，将本模组的顺序置于该模组前或许会有帮助
+[/list]
+
+[h2] 🧩 4. 兼容性 [/h2]
+[list]
+    [*] 本MOD修改了MOD菜单的UI，可能与其他修改该处UI的MOD冲突
+    [*] 本MOD使用Harmony框架，其他与Harmony冲突的MOD可能会与本MOD冲突
+    [*] 本MOD大面积使用反射，可能会随着游戏版本更新而失效
+[/list]
+
+[h2] 🧭 5. TODO [/h2]
+[list]
+    [*] 增添一键全选/全部取消的功能
+[/list]
+
+[h2] 6. 其他 [/h2]
+有意见和建议欢迎大家在讨论区留言或者github提issue，更新日志可以点击右上角“[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3600174953&tscn=1762356117] 改动说明 [/url]”查看。
+
+[b] 如果你喜欢这个 Mod 的话，希望可以点一下好评~[/b]
