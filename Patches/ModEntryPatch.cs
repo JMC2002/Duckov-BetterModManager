@@ -27,12 +27,6 @@ namespace BetterModManager.Patches
                 var btnUp = ReflectionHelper.GetFieldValue<Button>(__instance, "btnReorderUp");
                 var btnDown = ReflectionHelper.GetFieldValue<Button>(__instance, "btnReorderDown");
 
-                //var toggleButton = ReflectionHelper.GetFieldValue<Button>(__instance, "toggleButton");
-                //RectTransform rectTransform = toggleButton.gameObject.GetComponent<RectTransform>();
-                //ModLogger.Debug($"local: {rectTransform.localPosition}");
-                //ModLogger.Debug($"pos: {rectTransform.position}");
-                //ModLogger.Debug($"rect: {rectTransform.rect.width}");
-                //ModLogger.Debug($"left: {Vector3.left}");
                 if (btnUp == null || btnDown == null)
                 {
                     ModLogger.Error("未能找到原始的上/下按钮，无法添加置顶/置底按钮。");
