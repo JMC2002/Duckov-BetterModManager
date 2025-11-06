@@ -103,6 +103,33 @@ namespace BetterModManager.Utils
             }
         }
 
+        public static void CallVoidMethod(object obj, string methodName, params object[] args)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException(nameof(obj), $"CallVoidMethod 失败：obj 为 null");
+            }
+
+            var type = obj.GetType();
+            var method = _methodCache.GetOrAdd((type, methodName),
+                key => key.Item1.GetMethod(key.Item2, BindingFlags.Instance | BindingFlags.NonPublic));
+
+            if (method == null)
+            {
+                throw new MissingFieldException($"在 {type.Name} 中找不到方法 {methodName}");
+            }
+
+            try
+            {
+                method.Invoke(obj, args); // 直接调用，无需返回值
+            }
+            catch (TargetInvocationException ex)
+            {
+                throw new InvalidOperationException($"调用方法 {methodName} 时发生错误", ex.InnerException);
+            }
+        }
+
+
         /// <summary>
         /// 调用静态私有方法（可返回值，自动缓存 MethodInfo）
         /// </summary>
