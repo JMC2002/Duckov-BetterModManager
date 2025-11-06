@@ -1,12 +1,13 @@
 ﻿[h1]Better MOD Manager[/h1]
 [h2] 🧠 1. Introduction [/h2]
-Tired of clicking endlessly to sort your mods? Use this mod to pin to the top or bottom with one click! A restart is required for the first use.
+Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin to the top, pin to the bottom, enable, or disable with just one click! A restart is required the first time you enable it.
 
 [url=https://github.com/JMC2002/Duckov-BetterModManager] GitHub Repository [/url]
 
 [h2] ⚙️ 2. Features [/h2]
 [list]
     [*] Added two buttons for each item in the MOD management page to move the mod to the top or bottom, effectively equivalent to pressing the up/down button multiple times
+    [*] A checkbox is added on the left side of the MOD entry. Checking the box enables all mods, while unchecking it disables all mods.
 [/list]
 
 [h2] 🔔 3. Notes [/h2]
@@ -14,6 +15,9 @@ Tired of clicking endlessly to sort your mods? Use this mod to pin to the top or
     [*] This mod can be safely uninstalled and will not affect your save files
     [*] A restart is required the first time the mod is activated
     [*] This mod does not depend on any prerequisites, but if you're using a Mac and have subscribed to the Harmony.lib mod which prevents this mod from working, try moving this mod above it in the load order
+    [*] The principle behind enabling/disabling all mods is to enable them sequentially from the first mod entry downwards. It is normal to experience a brief delay if there are too many mod entries.
+    [*] If you want to disable all mods but notice the checkbox is not checked, please check the box first.
+
 [/list]
 
 [h2] 🧩 4. Compatibility [/h2]
@@ -25,7 +29,7 @@ Tired of clicking endlessly to sort your mods? Use this mod to pin to the top or
 
 [h2] 🧭 5. TODO [/h2]
 [list]
-    [*] Add a one-click select/deselect all feature
+    [*] [strike] Add a one-click select/deselect all feature [/strike] ✔️
 [/list]
 
 [h2] 6. Others [/h2]
