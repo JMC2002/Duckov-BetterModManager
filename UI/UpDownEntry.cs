@@ -2,6 +2,7 @@
 using Duckov.Modding;
 using Duckov.Modding.UI;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,18 +16,34 @@ namespace BetterModManager.UI
         private static float? _scaleHeight = null;
         private static Vector3? posUp = null;
         private static Vector3? posDown = null;
+        public enum Dir
+        {
+            Up,
+            Down,
+        }
 
+        public class BtnInfo
+        {
+            public string Tag = "default";
+            public string srcTag = "default";
+            public string hintWords = "default";
+            public Vector3 dir;      // 按钮相对于参考按钮的方向
+            public Vector3? pos;     // 按钮原始的偏移
+        }
+
+        public static Dictionary<Dir, BtnInfo> dict = new()
+        {
+            { Dir.Up, new BtnInfo { Tag = "btnReorderTop", srcTag = "btnReorderUp", hintWords = "置顶", dir = Vector3.up, pos = null } },
+            { Dir.Down, new BtnInfo { Tag = "btnReorderBottom", srcTag = "btnReorderDown", hintWords = "置底", dir = Vector3.down, pos = null } }
+        };
         public static void Setup(ModEntry __instance)
         {
             try
             {
-                // ===== 创建置顶按钮 =====
-                AddButton(__instance, "btnReorderUp", Vector3.down, ref posUp, GetOnClick(__instance, "置顶", 0));
-                
-                // ===== 创建置底按钮 =====
-                AddButton(__instance, "btnReorderDown", Vector3.up, ref posDown, GetOnClick(__instance, "置底", ModManager.modInfos.Count - 1));
-                
-                // ModLogger.Debug("已成功在 ModEntry 中添加置顶与置底按钮。");
+                foreach (Dir direction in Enum.GetValues(typeof(Dir)))
+                {
+                    AddButton(__instance, direction);
+                }
             }
             catch (Exception ex)
             {
@@ -34,24 +51,36 @@ namespace BetterModManager.UI
             }
         }
 
+        private static void AddButton(ModEntry __instance, Dir dir)
+        {
+            if (dict.TryGetValue(dir, out var info))
+            {
+                AddButtonImpl(__instance, info.srcTag, info.Tag, info.dir, ref dict[dir].pos
+                                    , GetOnClick(__instance, info.hintWords, dir == Dir.Up ? 0 : ModManager.modInfos.Count - 1));
+            }
+            else
+            {
+                ModLogger.Error($"{dir}未注册！");
+            }
+
+        }
         /// <summary>
         /// 根据原按钮添加置顶/置底按钮
         /// </summary>
         /// <param name="__instance"></param>
-        /// <param name="buttonName">参考按钮</param>
+        /// <param name="srcTag">参考按钮</param>
         /// <param name="dir">参考按钮的移动方向</param>
         /// <param name="posDir">缓存的偏移向量</param>
-        private static void AddButton(ModEntry __instance, string buttonName, Vector3 dir, ref Vector3? posDir, Action action)
+        private static void AddButtonImpl(ModEntry __instance, string srcTag, string dstTag, Vector3 dir, ref Vector3? posDir, Action action)
         {
             Button btnSrc;
             // 若不存在buttonName，此处会直接抛异常，因此不用单独判断
-            btnSrc = ReflectionHelper.GetFieldValue<Button>(__instance, buttonName);
-            ResizeButtonHeightAndMove(btnSrc, dir, ref posDir);
+            btnSrc = ReflectionHelper.GetFieldValue<Button>(__instance, srcTag);
+            ResizeButtonHeightAndMove(btnSrc, -dir, ref posDir);
 
-            // ===== 创建置顶按钮 =====
             var btnTop = UnityEngine.Object.Instantiate(btnSrc, btnSrc.transform.parent);
-            btnTop.name = $"btnFrom_{buttonName}";
-            AdjustButtonPosition(btnTop.transform, btnSrc.transform, -dir * btnSrc.GetComponent<RectTransform>().rect.height * 1.1f); // 向上偏移按钮
+            btnTop.name = $"{srcTag}";
+            AdjustButtonPosition(btnTop.transform, btnSrc.transform, dir * btnSrc.GetComponent<RectTransform>().rect.height * 1.1f); // 向上偏移按钮
             ReplaceButtonEvent(btnTop, action);
         }
 
@@ -107,14 +136,12 @@ namespace BetterModManager.UI
                 ModInfo currentModInfo = ReflectionHelper.GetFieldValue<ModInfo>(__instance, "info");
 
                 // 调用 Reorder 方法移动当前 Mod
-                if (ModManager.Reorder(currentIndex, dstIdx))
-                {
+                if (currentIndex == dstIdx)
+                    ModLogger.Info($"{dirName} 失败，因为已经{dirName}了");
+                else if (ModManager.Reorder(currentIndex, dstIdx))
                     ModLogger.Info($"Mod '{currentModInfo.name}' 已被{dirName}");
-                }
                 else
-                {
-                    ModLogger.Error("置底操作失败");
-                }
+                    ModLogger.Error("{dirName}操作失败");
             };
         }
     }
