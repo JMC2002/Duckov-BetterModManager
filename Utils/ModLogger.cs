@@ -9,7 +9,7 @@ namespace BetterModManager.Utils
     public static class ModLogger
     {
         // === Debug 模式开关 ===
-        public static bool EnableDebug => true;
+        public static bool EnableDebug => ModConfig.EnableDebugLogs;
 
         public static void Debug(string message,
             [CallerMemberName] string caller = "",
