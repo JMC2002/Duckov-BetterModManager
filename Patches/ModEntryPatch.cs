@@ -12,6 +12,10 @@ namespace BetterModManager.Patches
         private static void PostSetup(ModEntry __instance)
         {
             UI.UpDownEntry.Setup(__instance);
+            if (__instance.GetComponent<UI.ModEntryDragHandler>() == null)
+            {
+                __instance.gameObject.AddComponent<UI.ModEntryDragHandler>().Setup(__instance);
+            }
         }
     }
 }
