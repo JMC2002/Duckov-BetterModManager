@@ -1,6 +1,6 @@
 ﻿[h1]Better MOD Manager[/h1]
 [h2] 🧠 1. Introduction [/h2]
-Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin to the top, pin to the bottom, enable, or disable with just one click! A restart is required the first time you enable it.
+Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin to the top, pin to the bottom, enable, or disable with just one click! It also supports dragging and sorting of items. A restart is required the first time you enable it.
 
 [url=https://github.com/JMC2002/Duckov-BetterModManager] GitHub Repository [/url]
 
@@ -8,6 +8,7 @@ Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin 
 [list]
     [*] Added two buttons for each item in the MOD management page to move the mod to the top or bottom, effectively equivalent to pressing the up/down button multiple times
     [*] A checkbox is added on the left side of the MOD entry. Checking the box enables all mods, while unchecking it disables all mods.
+    [*] Hold the mouse button on a mod entry to drag and reorder it.
 [/list]
 
 [h2] 🔔 3. Notes [/h2]
