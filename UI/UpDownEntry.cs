@@ -14,8 +14,6 @@ namespace BetterModManager.UI
         private static readonly float scale = 0.5f;
         // 缓存缩放高度
         private static float? _scaleHeight = null;
-        private static Vector3? posUp = null;
-        private static Vector3? posDown = null;
         public enum Dir
         {
             Up,
