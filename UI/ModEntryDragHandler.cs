@@ -88,15 +88,9 @@ namespace BetterModManager.UI
             transform.SetSiblingIndex(this.initialSiblingIndex);
 
             int deltaIdx = this.GetDeltaIdx(eventData);
-            int nowIdx = ReflectionHelper.GetFieldValue<int>(modEntry, "index");
-            deltaIdx = nowIdx + deltaIdx;
-            if (deltaIdx == nowIdx || deltaIdx < 0 || deltaIdx >= ModManager.modInfos.Count)
-            {
-                ModLogger.Debug("目标序号非法或不变，保留原样");
-                return;
-            }
-            ModManager.Reorder(nowIdx, deltaIdx);
-            ModLogger.Info($"成功从 {nowIdx} 拖到 {deltaIdx}");
+            int nowIdx = ReorderHelper.GetIndex(modEntry);
+            ReorderHelper.Reorder(nowIdx, nowIdx + deltaIdx);
+
             ModLogger.Debug("退出 OnEndDrag()");
         }
 

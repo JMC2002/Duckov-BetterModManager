@@ -1,5 +1,4 @@
 ﻿using BetterModManager.Utils;
-using Duckov.Modding;
 using Duckov.Modding.UI;
 using System;
 using System.Collections.Generic;
@@ -54,7 +53,7 @@ namespace BetterModManager.UI
             if (dict.TryGetValue(dir, out var info))
             {
                 AddButtonImpl(__instance, info.srcTag, info.Tag, info.dir, ref dict[dir].pos
-                                    , GetOnClick(__instance, info.hintWords, dir == Dir.Up ? 0 : ModManager.modInfos.Count - 1));
+                                    , GetOnClick(__instance, info.hintWords, dir == Dir.Up));
             }
             else
             {
@@ -123,23 +122,12 @@ namespace BetterModManager.UI
             button.onClick.AddListener(() => onClick());
         }
 
-        private static Action GetOnClick(ModEntry __instance, string dirName, int dstIdx)
+        private static Action GetOnClick(ModEntry __instance, string dirName, bool IsToUp)
         {
             return () =>
             {
                 ModLogger.Info($"{dirName}按钮被点击");
-
-                // 使用反射获取当前 ModEntry 的 index 和 info 字段值
-                int currentIndex = ReflectionHelper.GetFieldValue<int>(__instance, "index");
-                ModInfo currentModInfo = ReflectionHelper.GetFieldValue<ModInfo>(__instance, "info");
-
-                // 调用 Reorder 方法移动当前 Mod
-                if (currentIndex == dstIdx)
-                    ModLogger.Info($"{dirName} 失败，因为已经{dirName}了");
-                else if (ModManager.Reorder(currentIndex, dstIdx))
-                    ModLogger.Info($"Mod '{currentModInfo.name}' 已被{dirName}");
-                else
-                    ModLogger.Error("{dirName}操作失败");
+                ReorderHelper.ToTopOrBottom(ReorderHelper.GetIndex(__instance), IsToUp);
             };
         }
     }
