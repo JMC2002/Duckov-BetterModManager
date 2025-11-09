@@ -3,6 +3,7 @@
 是否厌倦了为MOD排序或者启用/禁用MOD时总是点一年？用这个MOD一键置顶/置底/启用/禁用！首次启用需要重启游戏，同时支持拖拽排序。
 
 [url=https://github.com/JMC2002/Duckov-BetterModManager] Github仓库 [/url]
+[url=https://www.bilibili.com/video/BV18g2TBQErE/] 演示视频（b站） [/url]
 
 [h2] ⚙️ 2. 功能 [/h2]
 [list]

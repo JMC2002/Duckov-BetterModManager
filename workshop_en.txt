@@ -3,6 +3,7 @@
 Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin to the top, pin to the bottom, enable, or disable with just one click! It also supports dragging and sorting of items. A restart is required the first time you enable it.
 
 [url=https://github.com/JMC2002/Duckov-BetterModManager] GitHub Repository [/url]
+[url=https://www.bilibili.com/video/BV18g2TBQErE/] Demo Video (Bilibili) [/url]
 
 [h2] ⚙️ 2. Features [/h2]
 [list]
