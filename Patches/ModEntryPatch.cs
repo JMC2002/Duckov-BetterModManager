@@ -1,4 +1,5 @@
-﻿using Duckov.Modding.UI;
+﻿using BetterModManager.Utils;
+using Duckov.Modding.UI;
 using HarmonyLib;
 
 namespace BetterModManager.Patches
@@ -12,10 +13,8 @@ namespace BetterModManager.Patches
         private static void PostSetup(ModEntry __instance)
         {
             UI.UpDownEntry.Setup(__instance);
-            if (__instance.GetComponent<UI.ModEntryDragHandler>() == null)
-            {
-                __instance.gameObject.AddComponent<UI.ModEntryDragHandler>().Setup(__instance);
-            }
+            Utils.ComponentHelper.AddComponentIfNeeded<UI.ModEntryDragHandler>(__instance.gameObject, handler => handler.Setup(__instance), "ModEntryDragHandler 已添加并初始化");
+            Utils.ComponentHelper.AddComponentIfNeeded<UI.ModEntryKeyController>(__instance.gameObject, handler => handler.Setup(__instance), "ModEntryKeyController 已添加并初始化");
         }
     }
 }
