@@ -1,9 +1,7 @@
 ﻿using BetterModManager.Utils;
 using Duckov.Modding;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Duckov.Modding.UI;
+using System;
 
 
 namespace BetterModManager.UI
