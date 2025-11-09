@@ -87,9 +87,7 @@ namespace BetterModManager.UI
             transform.SetParent(this.initialParent);
             transform.SetSiblingIndex(this.initialSiblingIndex);
 
-            int deltaIdx = this.GetDeltaIdx(eventData);
-            int nowIdx = ReorderHelper.GetIndex(modEntry);
-            ReorderHelper.Reorder(nowIdx, nowIdx + deltaIdx);
+            ReorderHelper.AdjustIndex(modEntry, GetDeltaIdx(eventData));
 
             ModLogger.Debug("退出 OnEndDrag()");
         }

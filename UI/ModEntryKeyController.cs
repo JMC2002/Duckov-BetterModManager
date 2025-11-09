@@ -138,14 +138,14 @@ namespace BetterModManager.UI
                 if (Input.GetKeyDown(upKey))
                 {
                     ModLogger.Debug("按下了 W 或 上箭头键");
-                    ReorderHelper.Inc(ReorderHelper.GetIndex(modEntry));
+                    ReorderHelper.Inc(modEntry);
                 }
 
                 // 检测 S 或 下键
                 if (Input.GetKeyDown(downKey))
                 {
                     ModLogger.Debug("按下了 S 或 下箭头键");
-                    ReorderHelper.Dec(ReorderHelper.GetIndex(modEntry));
+                    ReorderHelper.Dec(modEntry);
                 }
 
                 yield return null; // 等待下一帧，持续监听按键

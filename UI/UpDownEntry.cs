@@ -127,7 +127,7 @@ namespace BetterModManager.UI
             return () =>
             {
                 ModLogger.Info($"{dirName}按钮被点击");
-                ReorderHelper.ToTopOrBottom(ReorderHelper.GetIndex(__instance), IsToUp);
+                ReorderHelper.ToTopOrBottom(__instance, IsToUp);
             };
         }
     }

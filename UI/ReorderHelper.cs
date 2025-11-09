@@ -36,57 +36,60 @@ namespace BetterModManager.UI
 
         public static void Reorder(int srcIdx, int dstIdx)
         {
-            ModLogger.Info($"Mod '{GetName(srcIdx)}' ");
-
             // srcIdx不合法在获取名字处就会抛异常，因此返回false只会是目标序号的问题
-            if (ReorderImpl(srcIdx, dstIdx))
-                ModLogger.Info($"成功从 {srcIdx} 变更到 {dstIdx}");
-            else
-                ModLogger.Info("目标序号非法或不变，保留原样");
-
+            ModLogger.Info($"Mod '{GetName(srcIdx)}' " +
+                           $"{(ReorderImpl(srcIdx, dstIdx) ? $"成功从 {srcIdx} 变更到 {dstIdx}" : "目标序号非法或不变，保留原样")}");
         }
 
-        public static void ToTopOrBottom(int srcIdx, bool isToTop)
+        // 将modEntry的序号变更delta，若delta越界，自动收缩到合法区间
+        public static void AdjustIndex(ModEntry modEntry, int delta)
+        {
+            int srcIdx = GetIndex(modEntry);
+            int dstIdx = srcIdx + delta;
+            dstIdx = Math.Min(dstIdx, BottomIdx);
+            dstIdx = Math.Max(dstIdx, TopIdx);
+
+            ModLogger.Info($"Mod '{GetName(srcIdx)}' " +
+                           $"{(ReorderImpl(srcIdx, dstIdx) ? $"成功从 {srcIdx} 变更到 {dstIdx}" : "目标序号不变，保留原样")}");
+        }
+
+        public static void ToTopOrBottom(ModEntry modEntry, bool isToTop)
         {
             string hintInfo = isToTop ? "置顶" : "置底";
+            int srcIdx = GetIndex(modEntry);
             int dstIdx = isToTop ? TopIdx : BottomIdx;
 
-            ModLogger.Info($"Mod '{GetName(srcIdx)}' ");
-
-            if (srcIdx == dstIdx)
-                ModLogger.Info($"{hintInfo} 失败，因为已经{hintInfo}了");
-            else if (ReorderImpl(srcIdx, dstIdx))
-                ModLogger.Info($"{hintInfo}成功");
-            else
-                ModLogger.Info($"{hintInfo}失败");    // 理论上来讲不会发生
+            ModLogger.Info($"Mod '{GetName(srcIdx)}' {hintInfo}" +
+                           $"{(ReorderImpl(srcIdx, dstIdx) ? "成功" : $"失败，因为已经{hintInfo}了")}");
         }
 
-        public static void ToTop(int Idx)
+        public static void ToTop(ModEntry modEntry)
         {
-            ToTopOrBottom(Idx, true);
+            ToTopOrBottom(modEntry, true);
         }
 
-        public static void ToBottom(int Idx)
+        public static void ToBottom(ModEntry modEntry)
         {
-            ToTopOrBottom(Idx, false);
+            ToTopOrBottom(modEntry, false);
         }
 
-        public static void IncOrDec(int srcIdx, bool isInc)
+        public static void IncOrDec(ModEntry modEntry, bool isInc)
         {
+            int srcIdx = GetIndex(modEntry);
             int dstIdx = isInc ? srcIdx - 1 : srcIdx + 1;
             ModLogger.Info($"Mod '{GetName(srcIdx)}' " +
                            $"顺序{(isInc ? "上升" : "下降")}" +
                            $"{(ReorderImpl(srcIdx, dstIdx) ? "成功" : $"失败，因为已在最{(isInc ? "顶" : "底")}")}");
         }
 
-        public static void Inc(int idx)
+        public static void Inc(ModEntry modEntry)
         {
-            IncOrDec(idx, true);
+            IncOrDec(modEntry, true);
         }
 
-        public static void Dec(int idx)
+        public static void Dec(ModEntry modEntry)
         {
-            IncOrDec(idx, false);
+            IncOrDec(modEntry, false);
         }
     }
 }
