@@ -40,5 +40,39 @@ namespace BetterModManager.Utils
             }
             return true;
         }
+
+        public static bool AddComponentAlways<T>(GameObject instance, Action<T> initializeMethod, string? info = null) where T : Component
+        {
+            bool flg = true;
+            if (instance.GetComponent<T>() != null)
+            {
+                UnityEngine.Object.Destroy(instance.GetComponent<T>());
+                flg = false;
+            }
+
+            initializeMethod(instance.AddComponent<T>());
+            if (info != null)
+            {
+                ModLogger.Debug(info);
+            }
+            return flg;
+        }
+
+        public static bool AddComponentOr<T>(GameObject instance, Action<T> initializeMethod, Action<T> onComponentFound, string? info = null) where T : Component
+        {
+            var component = instance.GetComponent<T>();
+            if (component != null)
+            {
+                onComponentFound(component);
+                return false;
+            }
+
+            initializeMethod(instance.AddComponent<T>());
+            if (info != null)
+            {
+                ModLogger.Debug(info);
+            }
+            return true;
+        }
     }
 }
