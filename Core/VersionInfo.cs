@@ -3,7 +3,7 @@
     public static class VersionInfo
     {
         public const string Name = "BetterModManager";
-        public const string Version = "1.3.6";
+        public const string Version = "1.3.7";
 
         public static string Tag => $"[{Name} v{Version}]";
     }

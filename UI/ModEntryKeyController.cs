@@ -2,8 +2,10 @@
 using Duckov.Modding.UI;
 using System;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 namespace BetterModManager.UI
 {
@@ -17,13 +19,19 @@ namespace BetterModManager.UI
         private static ModEntryKeyController? currentlySelectedController; // 记录当前选中的条目
         private static bool isListening = false; // 是否监听键盘或者鼠标事件
 
-        private KeyCode upKey = KeyCode.W; // 上键（默认为W）
-        private KeyCode downKey = KeyCode.S; // 下键（默认为S）
-        private KeyCode enterKey = KeyCode.Return; // 回车键（默认为回车）
-
         private int nowIdx;
         public static int? preIdx = null;
         private static bool waitingKeyLock = true;
+
+        private static KeyCode[] upKeys = { KeyCode.W, KeyCode.UpArrow }; // 上键（默认为W和方向上）
+        private static KeyCode[] downKeys = { KeyCode.S, KeyCode.DownArrow }; // 下键（默认为S和方向下）
+        private static KeyCode[] enterKeys = { KeyCode.Return, KeyCode.Escape }; // 退出键（默认为回车和ESC）
+
+        private static bool GetKeys(KeyCode[] keys) => keys.Any(key => Input.GetKeyDown(key));
+        private static bool GetReturn() => GetKeys(enterKeys);
+        private static bool GetUp() => GetKeys(upKeys);
+        private static bool GetDown() => GetKeys(downKeys);
+
 
         // 在对象激活时启动监听
         private void OnEnable()
@@ -130,22 +138,9 @@ namespace BetterModManager.UI
                 return;
             }
 
-            //// 如果之前有选中的条目，恢复其颜色
-            //if (currentlySelectedController != null && currentlySelectedController == this)
-            //{
-            //    currentlySelectedController.ResetColor();
-            //}
-
-            //// 如果之前有选中的条目，恢复其颜色
-            //if (currentlySelectedController != null && currentlySelectedController != this)
-            //{
-            //    currentlySelectedController.ResetColor();
-            //}
-
             PointerClick();
 
             ModLogger.Info("ModEntry 被点击，蒙版效果激活");
-
         }
 
         // 恢复颜色
@@ -185,7 +180,7 @@ namespace BetterModManager.UI
         private IEnumerator WaitForReturn()
         {
             // 等待直到鼠标按下事件触发
-            yield return new WaitUntil(() => isListening && (Input.GetMouseButtonDown(0) || Input.GetKeyDown(enterKey)));
+            yield return new WaitUntil(() => isListening && (Input.GetMouseButtonDown(0) || GetReturn()));
 
             if (canvasGroup != null)
             {
@@ -196,48 +191,35 @@ namespace BetterModManager.UI
             {
                 ModLogger.Debug("检测到鼠标点击，取消选中");
             }
-
-            if (Input.GetKeyDown(enterKey))
+            else
             {
-                ModLogger.Debug("检测到按下回车，取消选中");
-
-                // 相比于鼠标退出，这里多了置空的操作，以便下一次点击不会触发重复点击
-                currentlySelectedController = null;
+                ModLogger.Debug("检测到按下回车或ESC，取消选中");
             }
 
             Reset();
-
-            if (canvasGroup != null)
-            {
-                ModLogger.Debug($"当前canvasGroup.alpha: {canvasGroup.alpha}");
-            }
-
             preIdx = null;
+            ModLogger.Debug("处理点击事件完毕");
         }
 
         // 键盘事件监听
         private IEnumerator WaitForKeyPress()
         {
-            yield return new WaitUntil(() => isListening && waitingKeyLock && (Input.GetKeyDown(upKey) || Input.GetKeyDown(downKey)));
+            yield return new WaitUntil(() => isListening && waitingKeyLock && (GetUp() || GetDown()));
             ModLogger.Debug("WaitForKeyPress被触发");
             waitingKeyLock = false;
             var name = ReorderHelper.GetName(nowIdx);
             ModLogger.Debug($"{name}: ");
             // 检测 W 或 上键
-            if (Input.GetKeyDown(upKey))
+            if (GetUp())
             {
-                // Reset();
                 preIdx = ReorderHelper.Clamp(nowIdx - 1);
                 
                 ModLogger.Debug($"按下了 W 或 上箭头键，目标为{preIdx}");
                 ReorderHelper.Inc(nowIdx);
                 ModLogger.Debug("继续");
             }
-
-            // 检测 S 或 下键
-            if (Input.GetKeyDown(downKey))
+            else
             {
-                // Reset();
                 preIdx = ReorderHelper.Clamp(nowIdx + 1);
                 ModLogger.Debug($"按下了 S 或 下箭头键，目标为{preIdx}");
                 ReorderHelper.Dec(nowIdx);
@@ -250,17 +232,9 @@ namespace BetterModManager.UI
         private void Reset()
         {
             ResetColor();
-            // currentlySelectedController = null;
+            currentlySelectedController = null;
             if (isListening)
                 StopListening();
-        }
-
-        // 可以设置按键的替代方法
-        public void SetKeys(KeyCode up, KeyCode down, KeyCode enter)
-        {
-            upKey = up;
-            downKey = down;
-            enterKey = enter;
         }
     }
 }
