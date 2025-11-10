@@ -9,10 +9,8 @@ namespace BetterModManager.UI
 {
     public class ModEntryKeyController : MonoBehaviour, IPointerClickHandler
     {
-        private ModEntry modEntry;
         private CanvasGroup canvasGroup; // 用于控制透明度的 CanvasGroup
 
-        private Color initialColor; // 记录初始颜色
         private const float SelectedAlpha = 0.5f; // 选中时的透明度
         private const float DeselectAlpha = 1f;  // 恢复原色时的透明度
 
@@ -27,41 +25,21 @@ namespace BetterModManager.UI
         public static int? preIdx = null;
         private static bool waitingKeyLock = true;
 
-        public bool Test2()
-        {
-            return modEntry && preIdx != ReorderHelper.GetIndex(modEntry);
-        }
-
         // 在对象激活时启动监听
         private void OnEnable()
         {
-            //var name = modEntry == null ? "初始中" : ReorderHelper.GetName(ReorderHelper.GetIndex(modEntry));
-            //ModLogger.Debug($"{name}: OnEnable");
-            ////if (preIdx == null || preIdx != ReorderHelper.GetIndex(modEntry))
-            ////    return;
-
-            //if (currentlySelectedController != this)
-            //    return;
-
-            //ModLogger.Debug($"{name}: 尝试监听");
-            //PointerClick();
-            //if (canvasGroup != null)
-            //{
-            //    ModLogger.Debug($"当前canvasGroup.alpha: {canvasGroup.alpha}");
-            //}
         }
 
         // 在对象禁用时停止监听
         private void OnDisable()
         {
-            ModLogger.Debug($"{ReorderHelper.GetName(ReorderHelper.GetIndex(modEntry))}: OnDisable");
+            ModLogger.Debug($"{ReorderHelper.GetName(nowIdx)}: OnDisable");
             Reset();
         }
 
         public void Setup(ModEntry modEntry, int index)
         {
-            ModLogger.Debug($"{ReorderHelper.GetName(ReorderHelper.GetIndex(modEntry))}: 进入Setup");
-            this.modEntry = modEntry;
+            ModLogger.Debug($"{ReorderHelper.GetName(nowIdx)}: 进入Setup");
             this.nowIdx = index;
             // 获取 ModEntry 上的 CanvasGroup
             canvasGroup = modEntry.GetComponent<CanvasGroup>();
@@ -93,23 +71,6 @@ namespace BetterModManager.UI
             {
                 ModLogger.Debug("走else");
             }
-        }
-
-        public void Test(ModEntry modEntry, int index)
-        {
-            // 衔接上次按键移动排序的状态
-            //if (preIdx != null && preIdx == ReorderHelper.GetIndex(modEntry))
-            //{
-            //    ModLogger.Debug("测试");
-            //    try
-            //    {
-            //        PointerClick();
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        ModLogger.Error("Test出现问题", ex);
-            //    }
-            //}
         }
 
         private void PointerClick()
@@ -159,7 +120,7 @@ namespace BetterModManager.UI
         public void OnPointerClick(PointerEventData eventData)
         {
             ModLogger.Debug("触发OnPointerClick");
-            ModLogger.Debug($"当前idx为，{ReorderHelper.GetIndex(modEntry)}");
+            ModLogger.Debug($"当前idx为，{nowIdx}");
             if (currentlySelectedController != null && currentlySelectedController == this)
             {
                 ModLogger.Debug("重复点击，取消选中");
@@ -260,16 +221,16 @@ namespace BetterModManager.UI
             yield return new WaitUntil(() => isListening && waitingKeyLock && (Input.GetKeyDown(upKey) || Input.GetKeyDown(downKey)));
             ModLogger.Debug("WaitForKeyPress被触发");
             waitingKeyLock = false;
-            var name = modEntry == null ? "初始中" : ReorderHelper.GetName(ReorderHelper.GetIndex(modEntry));
+            var name = ReorderHelper.GetName(nowIdx);
             ModLogger.Debug($"{name}: ");
             // 检测 W 或 上键
             if (Input.GetKeyDown(upKey))
             {
                 // Reset();
-                preIdx = ReorderHelper.Clamp(ReorderHelper.GetIndex(modEntry) - 1);
+                preIdx = ReorderHelper.Clamp(nowIdx - 1);
                 
                 ModLogger.Debug($"按下了 W 或 上箭头键，目标为{preIdx}");
-                ReorderHelper.Inc(modEntry);
+                ReorderHelper.Inc(nowIdx);
                 ModLogger.Debug("继续");
             }
 
@@ -277,9 +238,9 @@ namespace BetterModManager.UI
             if (Input.GetKeyDown(downKey))
             {
                 // Reset();
-                preIdx = ReorderHelper.Clamp(ReorderHelper.GetIndex(modEntry) + 1);
+                preIdx = ReorderHelper.Clamp(nowIdx + 1);
                 ModLogger.Debug($"按下了 S 或 下箭头键，目标为{preIdx}");
-                ReorderHelper.Dec(modEntry);
+                ReorderHelper.Dec(nowIdx);
                 ModLogger.Debug("继续");
             }
 

@@ -1,5 +1,4 @@
 ﻿using BetterModManager.UI;
-using BetterModManager.Utils;
 using Duckov.Modding;
 using Duckov.Modding.UI;
 using HarmonyLib;

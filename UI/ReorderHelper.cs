@@ -76,9 +76,8 @@ namespace BetterModManager.UI
             return ToTopOrBottom(modEntry, false);
         }
 
-        public static int IncOrDec(ModEntry modEntry, bool isInc)
+        public static int IncOrDec(int srcIdx, bool isInc)
         {
-            int srcIdx = GetIndex(modEntry);
             int dstIdx = Clamp(isInc ? srcIdx - 1 : srcIdx + 1);
             ModLogger.Info($"Mod '{GetName(srcIdx)}' " +
                            $"顺序{(isInc ? "上升" : "下降")}" +
@@ -86,14 +85,14 @@ namespace BetterModManager.UI
             return dstIdx;
         }
 
-        public static int Inc(ModEntry modEntry)
+        public static int Inc(int srcIdx)
         {
-            return IncOrDec(modEntry, true);
+            return IncOrDec(srcIdx, true);
         }
 
-        public static int Dec(ModEntry modEntry)
+        public static int Dec(int srcIdx)
         {
-            return IncOrDec(modEntry, false);
+            return IncOrDec(srcIdx, false);
         }
     }
 }
