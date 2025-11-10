@@ -15,7 +15,10 @@ For other versions, you can compile it yourself or download the BetterModManager
                    |-- BetterModManager.dll
                    |-- info.ini
                    |-- preview.png
-> ⚠️ The release page will update with Workshop changes. The latest version is based on the source code. The DLL in the project folder is the latest, but it may not be usable during development.
+```
+
+> ⚠️ The release page will update with Workshop changes. The latest version is based on the source code. The DLL in the project folder is the latest, but it may not be usable during development. 
+
 
 ## 🧠 1. Introduction
 Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin to the top, pin to the bottom, enable, or disable with just one click! It also supports dragging and sorting of items. A restart is required the first time you enable it.
@@ -26,6 +29,8 @@ Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin 
 - Added two buttons for each item in the MOD management page to move the mod to the top or bottom, effectively equivalent to pressing the up/down button multiple times.
 - A checkbox is added on the left side of the MOD entry. Checking the box enables all mods, while unchecking it disables all mods.
 - Hold the mouse button on a mod entry to drag and reorder it.
+- This mod makes extensive use of reflection, and it may become outdated with future game updates
+- Click a mod entry to select it, then press **W** or the up arrow key to move the mod up, **S** or the down arrow key to move it down, and press **Enter**, **ESC**, or click anywhere to deselect.
 
 ## 🔔 3. Notes
 - This mod can be safely uninstalled and will not affect your save files.

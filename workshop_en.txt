@@ -26,7 +26,7 @@ Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin 
 [list]
     [*] This mod modifies the MOD menu UI, which may conflict with other mods that modify the same UI
     [*] This mod uses the Harmony framework, so it may conflict with other mods that also use Harmony
-    [*] This mod makes extensive use of reflection, and it may become outdated with future game updates
+    [*] This mod makes extensive use of reflection, and it may become outdated with future game updates[*] Click a mod entry to select it, then press [b]W[/b] or the up arrow key to move the mod up, [b]S[/b] or the down arrow key to move it down, and press [b]Enter[/b], [b]ESC[/b], or click anywhere to deselect.
 [/list]
 
 [h2] 🧭 5. TODO [/h2]
