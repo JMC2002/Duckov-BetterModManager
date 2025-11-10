@@ -5,7 +5,6 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 
 namespace BetterModManager.UI
 {
@@ -17,11 +16,11 @@ namespace BetterModManager.UI
         private const float DeselectAlpha = 1f;  // 恢复原色时的透明度
 
         private static ModEntryKeyController? currentlySelectedController; // 记录当前选中的条目
-        private static bool isListening = false; // 是否监听键盘或者鼠标事件
+        public static bool isListening = false; // 是否监听键盘或者鼠标事件
 
         private int nowIdx;
         public static int? preIdx = null;
-        private static bool waitingKeyLock = true;
+        private static bool waitingKeyLock = true;  // 用于防止重复触发按键
 
         private static KeyCode[] upKeys = { KeyCode.W, KeyCode.UpArrow }; // 上键（默认为W和方向上）
         private static KeyCode[] downKeys = { KeyCode.S, KeyCode.DownArrow }; // 下键（默认为S和方向下）
@@ -33,7 +32,6 @@ namespace BetterModManager.UI
         private static bool GetDown() => GetKeys(downKeys);
 
 
-        // 在对象激活时启动监听
         private void OnEnable()
         {
         }
@@ -88,6 +86,7 @@ namespace BetterModManager.UI
             {
                 ModLogger.Debug("设置alpha");
                 canvasGroup.alpha = SelectedAlpha;
+                canvasGroup.blocksRaycasts = false;
                 Canvas.ForceUpdateCanvases();
             }
             else
@@ -140,7 +139,7 @@ namespace BetterModManager.UI
 
             PointerClick();
 
-            ModLogger.Info("ModEntry 被点击，蒙版效果激活");
+            ModLogger.Info($"Mod '{ReorderHelper.GetName(nowIdx)}' 被点击，蒙版效果激活");
         }
 
         // 恢复颜色
@@ -171,7 +170,7 @@ namespace BetterModManager.UI
         // 停止监听
         public void StopListening()
         {
-            ModLogger.Debug("停止监听输入事件");
+            ModLogger.Info("停止监听输入事件");
             isListening = false;
             StopAllCoroutines();
         }
@@ -189,11 +188,11 @@ namespace BetterModManager.UI
 
             if (Input.GetMouseButtonDown(0))
             {
-                ModLogger.Debug("检测到鼠标点击，取消选中");
+                ModLogger.Info("检测到鼠标点击，取消选中");
             }
             else
             {
-                ModLogger.Debug("检测到按下回车或ESC，取消选中");
+                ModLogger.Info("检测到按下回车或ESC，取消选中");
             }
 
             Reset();
@@ -214,14 +213,14 @@ namespace BetterModManager.UI
             {
                 preIdx = ReorderHelper.Clamp(nowIdx - 1);
                 
-                ModLogger.Debug($"按下了 W 或 上箭头键，目标为{preIdx}");
+                ModLogger.Info($"按下了 W 或 上箭头键，目标为{preIdx}");
                 ReorderHelper.Inc(nowIdx);
                 ModLogger.Debug("继续");
             }
             else
             {
                 preIdx = ReorderHelper.Clamp(nowIdx + 1);
-                ModLogger.Debug($"按下了 S 或 下箭头键，目标为{preIdx}");
+                ModLogger.Info($"按下了 S 或 下箭头键，目标为{preIdx}");
                 ReorderHelper.Dec(nowIdx);
                 ModLogger.Debug("继续");
             }
@@ -235,6 +234,7 @@ namespace BetterModManager.UI
             currentlySelectedController = null;
             if (isListening)
                 StopListening();
+            canvasGroup.blocksRaycasts = true;
         }
     }
 }

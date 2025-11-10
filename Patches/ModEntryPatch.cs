@@ -15,15 +15,11 @@ namespace BetterModManager.Patches
         {
             UI.UpDownEntry.Setup(__instance);
             Utils.ComponentHelper.AddComponentIfNeeded<UI.ModEntryDragHandler>(__instance.gameObject, handler => handler.Setup(__instance), "ModEntryDragHandler 已添加并初始化");
-            if (index == ModEntryKeyController.preIdx)
+            Utils.ComponentHelper.AddComponentAlways<UI.ModEntryKeyController>(__instance.gameObject, handler => handler.Setup(__instance, index), "ModEntryKeyController 已添加并初始化");
+            if (ModEntryKeyController.preIdx != null)
             {
-                Utils.ComponentHelper.AddComponentAlways<UI.ModEntryKeyController>(__instance.gameObject, handler => handler.Setup(__instance, index), "ModEntryKeyController 已添加并初始化");
+                ModEntryKeyController.isListening = true;
             }
-            else
-            {
-                Utils.ComponentHelper.AddComponentIfNeeded<UI.ModEntryKeyController>(__instance.gameObject, handler => handler.Setup(__instance, index), "ModEntryKeyController 已添加并初始化");
-            }
-            
         }
     }
 }
