@@ -2,6 +2,7 @@
 using Duckov.Modding;
 using Duckov.Modding.UI;
 using HarmonyLib;
+using UnityEngine.UI;
 
 namespace BetterModManager.Patches
 {
@@ -14,7 +15,9 @@ namespace BetterModManager.Patches
         private static void PostSetup(ModEntry __instance, ModManagerUI master, ModInfo modInfo, int index)
         {
             UI.UpDownEntry.Setup(__instance);
-            Utils.ComponentHelper.AddComponentIfNeeded<UI.ModEntryDragHandler>(__instance.gameObject, handler => handler.Setup(__instance), "ModEntryDragHandler 已添加并初始化");
+            Utils.ComponentHelper.AddComponentIfNeeded<UI.ModEntryDragHandler>(__instance.gameObject, handler => handler.Setup(__instance, master), "ModEntryDragHandler 已添加并初始化");
+            
+
             Utils.ComponentHelper.AddComponentAlways<UI.ModEntryKeyController>(__instance.gameObject, handler => handler.Setup(__instance, index), "ModEntryKeyController 已添加并初始化");
             if (ModEntryKeyController.preIdx != null)
             {

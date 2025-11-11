@@ -4,6 +4,7 @@ using Duckov.Utilities;
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace BetterModManager.UI
 {
@@ -18,30 +19,61 @@ namespace BetterModManager.UI
         private int initialSiblingIndex;
 
         private ModEntry modEntry;
-        private bool isDragging = false;
+        private RightClickableScrollRect? rightRect;
+        private ModManagerUI master;
+        private bool dragStarted = false;
+        private float dragStartTime;
+        private Vector2 dragStartPos;
 
         private const float DragingAlpha = 0.6f;
-        private const float InitialAlpha = 1f;
+        private const float InitialAlpha = 1f; 
+        private const float DragDelay = 0.25f;     // 鼠标按住多久才算拖拽（毫秒）
+        private const float MoveThreshold = 6f;    // 移动多远才开始拖拽（像素）
 
         private float? deltaHeight;
 
-        public void Setup(ModEntry modEntry)
+        public void Setup(ModEntry modEntry, ModManagerUI master)
         {
             this.modEntry = modEntry;
+            this.master = master;
             rectTransform = GetComponent<RectTransform>();
             canvasGroup = GetComponent<CanvasGroup>();
 
             SetCanvasGroup(true);
         }
 
+        private bool IsPermitted(PointerEventData eventData)
+        {
+            return eventData.button == PointerEventData.InputButton.Left;
+        }
+
         // 拖拽开始时触发
         public void OnBeginDrag(PointerEventData eventData)
         {
+            rightRect = master.GetComponentInChildren<ScrollRect>(true)?.GetComponent<RightClickableScrollRect>();
+            if (rightRect == null)
+            {
+                ModLogger.Warn("未找到RightClickableScrollRect");
+            }
+
+            if (rightRect != null && !IsPermitted(eventData))
+            {
+                ModLogger.Debug("开始转发右键拖动事件");
+                // 允许右键事件穿透到 ScrollRect
+                if (canvasGroup != null)
+                    canvasGroup.blocksRaycasts = false;
+                rightRect.OnBeginDrag(eventData);
+                return;
+            }
+
             // 延迟初始化
             deltaHeight = deltaHeight ?? GetDeltaHeight(modEntry);
 
             startY = GetLocalY(eventData);
-            isDragging = false;
+
+            dragStarted = false;
+            dragStartTime = Time.time;
+            dragStartPos = eventData.position;
 
             ModLogger.Debug("OnBeginDrag()");
         }
@@ -49,37 +81,51 @@ namespace BetterModManager.UI
         // 在拖拽过程中触发
         public void OnDrag(PointerEventData eventData)
         {
-            ModLogger.Debug("进入 OnDrag()");
-            if (modEntry == null)
+            if (rightRect != null && !IsPermitted(eventData))
             {
-                throw new InvalidOperationException("OnBeginDrag 前未初始化 modEntry");
+                rightRect.OnDrag(eventData);
+                ModLogger.Debug("结束转发右键拖动事件");
+                return;
             }
+            ModLogger.Debug("进入 OnDrag()");
 
-            if (!isDragging)
+            // 只有超过时间或距离阈值才开始拖拽
+            if (!dragStarted && (Time.time - dragStartTime > DragDelay || Vector2.Distance(eventData.position, dragStartPos) > MoveThreshold))
             {
-                isDragging = true;
+                dragStarted = true;
                 initialPosition = rectTransform.anchoredPosition;
                 initialParent = transform.parent;
                 initialSiblingIndex = transform.GetSiblingIndex();
 
                 SetCanvasGroup(false);
                 transform.SetAsLastSibling();
+
+                ModLogger.Debug("拖拽正式开始");
             }
 
-            rectTransform.anchoredPosition = new Vector2(initialPosition.x, GetLocalY(eventData));
-            ModLogger.Debug("退出 OnDrag()");
+            if (dragStarted) 
+            {
+                rectTransform.anchoredPosition = new Vector2(initialPosition.x, GetLocalY(eventData));
+                ModLogger.Debug("退出 OnDrag()");
+            }
         }
 
         // 拖拽结束时触发
         public void OnEndDrag(PointerEventData eventData)
         {
+            if (rightRect != null && !IsPermitted(eventData))
+            {
+                if (canvasGroup != null)
+                    canvasGroup.blocksRaycasts = true;
+                rightRect.OnEndDrag(eventData);
+                return;
+            }
             ModLogger.Debug("进入 OnEndDrag()");
-            if (modEntry == null)
-                throw new InvalidOperationException("OnEndDrag 前未初始化 modEntry");
-            if (!isDragging)
+
+            if (!dragStarted)
                 return;
 
-            isDragging = false;
+            dragStarted = false;
             SetCanvasGroup(true);
 
             rectTransform.anchoredPosition = initialPosition;

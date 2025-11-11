@@ -26,14 +26,23 @@ namespace BetterModManager.Utils
         /// <param name="info">可选的参数，成功添加的日志信息，如果有传递，会打印到Debug日志中</param>
         /// <returns>如果组件已存在返回 false，成功添加返回 true</returns>
         /// 
-        public static bool AddComponentIfNeeded<T>(GameObject instance, Action<T> initializeMethod, string? info = null) where T : Component
+        public static bool AddComponentIfNeeded<T>(GameObject instance, Action<T>? initializeMethod = null, string? info = null) where T : Component
         {
+            if (instance == null)
+            {
+                ModLogger.Error($"{nameof(instance)} 为空");
+                return false;
+            }
             if (instance.GetComponent<T>() != null)
             {
                 return false;
             }
 
-            initializeMethod(instance.AddComponent<T>());
+            var tmp = instance.AddComponent<T>();
+            if (initializeMethod != null)
+            {
+                initializeMethod(tmp);
+            }
             if (info != null)
             {
                 ModLogger.Debug(info);
@@ -55,6 +64,7 @@ namespace BetterModManager.Utils
             {
                 ModLogger.Debug(info);
             }
+
             return flg;
         }
 

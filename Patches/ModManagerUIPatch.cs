@@ -1,6 +1,11 @@
-﻿using Duckov.Modding.UI;
+﻿using BetterModManager.UI;
+using BetterModManager.Utils;
+using Duckov.Modding;
+using Duckov.Modding.UI;
 using HarmonyLib;
+using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 namespace BetterModManager.Patches
 {
@@ -13,6 +18,10 @@ namespace BetterModManager.Patches
         private static void PostOnEnable(ModManagerUI __instance)
         {
             UI.ToggleAllEntry.Setup(__instance);
+
+            var scroll = __instance.GetComponentInChildren<ScrollRect>(true);
+            Utils.ComponentHelper.AddComponentIfNeeded<RightClickableScrollRect>(scroll?.gameObject, null, $"已在 {scroll?.gameObject?.name} 挂载 RightClickableScrollRect");
+
         }
     }
 }
