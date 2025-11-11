@@ -179,14 +179,14 @@ namespace BetterModManager.UI
         private IEnumerator WaitForReturn()
         {
             // 等待直到鼠标按下事件触发
-            yield return new WaitUntil(() => isListening && (Input.GetMouseButtonDown(0) || GetReturn()));
+            yield return new WaitUntil(() => isListening && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || GetReturn()));
 
             if (canvasGroup != null)
             {
                 ModLogger.Debug($"当前canvasGroup.alpha: {canvasGroup.alpha}");
             }
 
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
             {
                 ModLogger.Info("检测到鼠标点击，取消选中");
             }
