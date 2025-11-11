@@ -1,5 +1,4 @@
 ﻿using BetterModManager.Utils;
-using Duckov.Modding.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;

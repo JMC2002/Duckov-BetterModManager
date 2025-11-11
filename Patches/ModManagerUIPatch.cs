@@ -1,11 +1,7 @@
 ﻿using BetterModManager.UI;
-using BetterModManager.Utils;
-using Duckov.Modding;
 using Duckov.Modding.UI;
 using HarmonyLib;
-using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 namespace BetterModManager.Patches
 {

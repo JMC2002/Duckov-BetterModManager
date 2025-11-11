@@ -2,7 +2,6 @@
 using Duckov.Modding;
 using Duckov.Modding.UI;
 using HarmonyLib;
-using UnityEngine.UI;
 
 namespace BetterModManager.Patches
 {
