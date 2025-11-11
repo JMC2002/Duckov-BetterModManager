@@ -20,7 +20,7 @@ namespace BetterModManager.Patches
             UI.ToggleAllEntry.Setup(__instance);
 
             var scroll = __instance.GetComponentInChildren<ScrollRect>(true);
-            Utils.ComponentHelper.AddComponentIfNeeded<RightClickableScrollRect>(scroll?.gameObject, null, $"已在 {scroll?.gameObject?.name} 挂载 RightClickableScrollRect");
+            Utils.ComponentHelper.AddComponentIfNeeded<ScrollRectRightDragAdapter>(scroll?.gameObject, null, $"已在 {scroll?.gameObject?.name} 挂载 ScrollRectRightDragAdapter");
 
         }
     }

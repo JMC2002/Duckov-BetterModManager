@@ -19,7 +19,7 @@ namespace BetterModManager.UI
         private int initialSiblingIndex;
 
         private ModEntry modEntry;
-        private RightClickableScrollRect? rightRect;
+        private ScrollRectRightDragAdapter? rightRect;
         private ModManagerUI master;
         private bool dragStarted = false;
         private float dragStartTime;
@@ -50,7 +50,7 @@ namespace BetterModManager.UI
         // 拖拽开始时触发
         public void OnBeginDrag(PointerEventData eventData)
         {
-            rightRect = master.GetComponentInChildren<ScrollRect>(true)?.GetComponent<RightClickableScrollRect>();
+            rightRect = master.GetComponentInChildren<ScrollRect>(true)?.GetComponent<ScrollRectRightDragAdapter>();
             if (rightRect == null)
             {
                 ModLogger.Warn("未找到RightClickableScrollRect");

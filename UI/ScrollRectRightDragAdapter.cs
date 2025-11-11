@@ -10,7 +10,7 @@ namespace BetterModManager.UI
     /// 让 ScrollRect 支持右键拖动，而不破坏原 ScrollRect。
     /// </summary>
     [RequireComponent(typeof(ScrollRect))]
-    public class RightClickableScrollRect : MonoBehaviour,
+    public class ScrollRectRightDragAdapter : MonoBehaviour,
         IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         public bool allowRightButton = true;
@@ -22,7 +22,7 @@ namespace BetterModManager.UI
             scrollRect = GetComponent<ScrollRect>();
             if (scrollRect == null)
             {
-                ModLogger.Error($"{nameof(RightClickableScrollRect)}: 未找到 ScrollRect 组件。");
+                ModLogger.Error($"{nameof(ScrollRectRightDragAdapter)}: 未找到 ScrollRect 组件。");
             }
             ModLogger.Debug("成功注册RightClickableScrollRect");
         }
