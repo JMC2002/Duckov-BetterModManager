@@ -31,6 +31,7 @@ Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin 
 - Hold the mouse button on a mod entry to drag and reorder it.
 - This mod makes extensive use of reflection, and it may become outdated with future game updates
 - Click a mod entry to select it, then press **W** or the up arrow key to move the mod up, **S** or the down arrow key to move it down, and press **Enter**, **ESC**, or click anywhere to deselect.
+- You can now scroll the interface by dragging with the right mouse button (same behavior as left-click dragging without mods).
 
 ## 🔔 3. Notes
 - This mod can be safely uninstalled and will not affect your save files.

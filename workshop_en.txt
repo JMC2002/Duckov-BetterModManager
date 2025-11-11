@@ -10,6 +10,8 @@ Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin 
     [*] Added two buttons for each item in the MOD management page to move the mod to the top or bottom, effectively equivalent to pressing the up/down button multiple times
     [*] A checkbox is added on the left side of the MOD entry. Checking the box enables all mods, while unchecking it disables all mods.
     [*] Hold the mouse button on a mod entry to drag and reorder it.
+    [*] Click a mod entry to select it, then press [b]W[/b] or the up arrow key to move the mod up, [b]S[/b] or the down arrow key to move it down, and press [b]Enter[/b], [b]ESC[/b], or click anywhere to deselect.
+    [*] You can now scroll the interface by dragging with the right mouse button (same behavior as left-click dragging without mods).
 [/list]
 
 [h2] 🔔 3. Notes [/h2]
