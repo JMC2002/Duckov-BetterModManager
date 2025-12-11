@@ -1,10 +1,10 @@
-﻿using BetterModManager.Utils;
-using Duckov.Modding.UI;
+﻿using Duckov.Modding.UI;
 using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using JmcModLib.Utils;
 
 namespace BetterModManager.UI
 {

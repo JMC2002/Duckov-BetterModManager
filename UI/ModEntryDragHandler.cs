@@ -1,10 +1,11 @@
-﻿using BetterModManager.Utils;
-using Duckov.Modding.UI;
+﻿using Duckov.Modding.UI;
 using Duckov.Utilities;
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using JmcModLib.Utils;
+using JmcModLib.Reflection;
 
 namespace BetterModManager.UI
 {
@@ -168,8 +169,11 @@ namespace BetterModManager.UI
 
         private float GetDeltaHeight(ModEntry modEntry)
         {
-            var masterUI = ReflectionHelper.GetFieldValue<ModManagerUI>(modEntry, "master");
-            var activeEntries = ReflectionHelper.GetFieldValue<PrefabPool<ModEntry>>(masterUI, "_pool").ActiveEntries;
+            var masterUI = MemberAccessor.Get(typeof(ModEntry), "master")
+                                         .GetValue<ModEntry, ModManagerUI>(modEntry);
+            var activeEntries = MemberAccessor.Get(typeof(ModManagerUI), "_pool")
+                                              .GetValue<ModManagerUI, PrefabPool<ModEntry>>(masterUI)
+                                              .ActiveEntries;
 
             if (activeEntries.Count < 2)
             {

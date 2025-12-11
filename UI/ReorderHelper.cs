@@ -1,8 +1,8 @@
-﻿using BetterModManager.Utils;
-using Duckov.Modding;
+﻿using Duckov.Modding;
 using Duckov.Modding.UI;
 using System;
-
+using JmcModLib.Utils;
+using JmcModLib.Reflection;
 
 namespace BetterModManager.UI
 {
@@ -13,7 +13,8 @@ namespace BetterModManager.UI
 
         public static int GetIndex(ModEntry modEntry)
         {
-            return ReflectionHelper.GetFieldValue<int>(modEntry, "index");
+            return MemberAccessor.Get(typeof(ModEntry), "index")
+                                 .GetValue<ModEntry, int>(modEntry);
         }
 
         public static bool IsValidIndex(int idx)

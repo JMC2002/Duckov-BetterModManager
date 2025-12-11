@@ -1,7 +1,7 @@
-﻿using BetterModManager.Utils;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using JmcModLib.Utils;
 
 namespace BetterModManager.UI
 {

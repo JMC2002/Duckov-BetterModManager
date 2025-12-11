@@ -2,6 +2,7 @@
 using Duckov.Modding.UI;
 using HarmonyLib;
 using UnityEngine.UI;
+using JmcModLib.Utils;
 
 namespace BetterModManager.Patches
 {
@@ -16,7 +17,7 @@ namespace BetterModManager.Patches
             UI.ToggleAllEntry.Setup(__instance);
 
             var scroll = __instance.GetComponentInChildren<ScrollRect>(true);
-            Utils.ComponentHelper.AddComponentIfNeeded<ScrollRectRightDragAdapter>(scroll?.gameObject, null, $"已在 {scroll?.gameObject?.name} 挂载 ScrollRectRightDragAdapter");
+            ComponentHelper.AddComponentIfNeeded<ScrollRectRightDragAdapter>(scroll?.gameObject, null, $"已在 {scroll?.gameObject?.name} 挂载 ScrollRectRightDragAdapter");
 
         }
     }

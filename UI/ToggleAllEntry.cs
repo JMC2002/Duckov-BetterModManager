@@ -1,7 +1,8 @@
-﻿using BetterModManager.Utils;
+﻿using JmcModLib.Utils;
 using Duckov.Modding;
 using Duckov.Modding.UI;
 using Duckov.Utilities;
+using JmcModLib.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,10 +25,16 @@ namespace BetterModManager.UI
                 // 创建全选按钮，并设置样式
                 // if (toggleAllButton == null)
                 {
-                    var pool = ReflectionHelper.GetFieldValue<PrefabPool<ModEntry>>(__instance, "_pool");
+                    var pool = MemberAccessor.Get(typeof(ModManagerUI), "_pool")
+                                             .GetValue<ModManagerUI, PrefabPool<ModEntry>>(__instance);
                     var firstModEntry = pool.Find(m => true);   // 由于启用这个MOD至少有这个MOD，因此至少有一个MOD
-                    var toggleButton = ReflectionHelper.GetFieldValue<Button>(firstModEntry, "toggleButton");
-                    var activeIndicatorTmp = ReflectionHelper.GetFieldValue<GameObject>(firstModEntry, "activeIndicator");
+
+                    var toggleButton = MemberAccessor.Get(typeof(ModEntry), "toggleButton")
+                                                     .GetValue<ModEntry, Button>(firstModEntry);
+
+                    var activeIndicatorTmp = MemberAccessor.Get(typeof(ModEntry), "activeIndicator")
+                                                           .GetValue<ModEntry, GameObject>(firstModEntry);
+
                     var tmp = activeIndicatorTmp.activeSelf;
                     activeIndicatorTmp.SetActive(false);
                     //ModLogger.Info($"active: {activeIndicatorTmp.activeSelf}");
@@ -63,13 +70,15 @@ namespace BetterModManager.UI
                 bool now = activeAllIndicator.activeSelf;
 
                 // 遍历所有的 ModEntry 控件
-                var pool = ReflectionHelper.GetFieldValue<PrefabPool<ModEntry>>(__instance, "_pool");
+                var pool = MemberAccessor.Get(typeof(ModManagerUI), "_pool")
+                                         .GetValue<ModManagerUI, PrefabPool<ModEntry>>(__instance);
                 if (pool == null)
                 {
                     return;
                 }
 
-                var activeObjects = ReflectionHelper.GetFieldValue<List<ModEntry>>(pool, "activeObjects");
+                var activeObjects = MemberAccessor.Get(typeof(PrefabPool<ModEntry>), "activeObjects")
+                                                  .GetValue<PrefabPool<ModEntry>, List<ModEntry>>(pool);
                 if (activeObjects == null)
                 {
                     ModLogger.Info("activeObjects不存在");
@@ -82,16 +91,21 @@ namespace BetterModManager.UI
 
                 foreach (ModEntry modEntry in now ? activeObjects : activeObjects.AsEnumerable().Reverse())
                 {
-                    var info = ReflectionHelper.GetFieldValue<ModInfo>(modEntry, "info");
-                    var toggleButton = ReflectionHelper.GetFieldValue<Button>(modEntry, "toggleButton");
-                    var activeIndicator = ReflectionHelper.GetFieldValue<GameObject>(modEntry, "activeIndicator");
+                    var info = MemberAccessor.Get(typeof(ModEntry), "info")
+                                             .GetValue<ModEntry, ModInfo>(modEntry);
+                    var toggleButton = MemberAccessor.Get(typeof(ModEntry), "toggleButton")
+                                                     .GetValue<ModEntry, Button>(modEntry);
+                    var activeIndicator = MemberAccessor.Get(typeof(ModEntry), "activeIndicator")
+                                                        .GetValue<ModEntry, GameObject>(modEntry);
+
                     bool b = ModManager.IsModActive(info, out Duckov.Modding.ModBehaviour context);
 
                     ModLogger.Debug($"遍历到{info.name}, 当前active为: {activeIndicator.activeSelf}，modActive为：{b}");
 
                     if (activeIndicator.activeSelf != now && b != now)
                     {
-                        ReflectionHelper.CallVoidMethod(modEntry, "OnToggleButtonClicked");
+                        MethodAccessor.Get(typeof(ModEntry), "OnToggleButtonClicked", Type.EmptyTypes)
+                                      .InvokeVoid<ModEntry>(modEntry);
                     }
                     else
                     {

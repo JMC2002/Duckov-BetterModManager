@@ -1,6 +1,6 @@
 ﻿using BetterModManager.Core;
-using BetterModManager.Utils;
 using HarmonyLib;
+using JmcModLib.Utils;
 using System.Reflection;
 
 namespace BetterModManager.Patches

@@ -1,6 +1,7 @@
 ﻿using BetterModManager.Core;
 using BetterModManager.Patches;
-using BetterModManager.Utils; // 假设你用相同工具模块
+using JmcModLib.Core;
+using JmcModLib.Utils;
 
 namespace BetterModManager
 {
@@ -17,6 +18,13 @@ namespace BetterModManager
             ModConfig.Load();
             harmonyHelper.OnEnable();
             ModLogger.Info("模组已启用");
+        }
+
+        protected override void OnAfterSetup()
+        {
+            ModRegistry.Register(true, info, VersionInfo.Name, VersionInfo.Version)?
+                       .RegisterLogger()
+                       .Done();
         }
 
         void OnDisable()
