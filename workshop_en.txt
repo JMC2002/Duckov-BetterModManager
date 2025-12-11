@@ -12,13 +12,14 @@ Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin 
     [*] Hold the mouse button on a mod entry to drag and reorder it.
     [*] Click a mod entry to select it, then press [b]W[/b] or the up arrow key to move the mod up, [b]S[/b] or the down arrow key to move it down, and press [b]Enter[/b], [b]ESC[/b], or click anywhere to deselect.
     [*] You can now scroll the interface by dragging with the right mouse button (same behavior as left-click dragging without mods).
+    [*] Added a lock button for each entry. Once locked, the entry will be skipped when performing Select All / Deselect All.
 [/list]
 
 [h2] 🔔 3. Notes [/h2]
 [list]
+    [*] [b]This mod has a hard dependency on [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3613297900]JmcModLib[/url]. Please make sure to place that mod above this one.[/b]
     [*] This mod can be safely uninstalled and will not affect your save files
     [*] A restart is required the first time the mod is activated
-    [*] This mod does not depend on any prerequisites, but if you're using a Mac and have subscribed to the Harmony.lib mod which prevents this mod from working, try moving this mod above it in the load order
     [*] The principle behind enabling/disabling all mods is to enable them sequentially from the first mod entry downwards. It is normal to experience a brief delay if there are too many mod entries.
     [*] If you want to disable all mods but notice the checkbox is not checked, please check the box first.
 

@@ -16,7 +16,15 @@ namespace BetterModManager.Patches
         {
             UI.UpDownEntry.Setup(__instance);
             ComponentHelper.AddComponentIfNeeded<UI.ModEntryDragHandler>(__instance.gameObject, handler => handler.Setup(__instance, master), "ModEntryDragHandler 已添加并初始化");
-            
+
+
+            ComponentHelper.AddComponentIfNeeded<UI.ModEntryLockHandler>(
+                __instance.gameObject,
+                handler => handler.Setup(__instance, (locked) => {
+                    ModLogger.Debug($"回调触发：锁定状态 = {locked}");
+                }),
+                "ModEntryLockHandler 已添加并初始化"
+            );
 
             ComponentHelper.AddComponentAlways<UI.ModEntryKeyController>(__instance.gameObject, handler => handler.Setup(__instance, index), "ModEntryKeyController 已添加并初始化");
             if (ModEntryKeyController.preIdx != null)

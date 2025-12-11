@@ -1,8 +1,9 @@
-﻿using JmcModLib.Utils;
+﻿using BetterModManager.Utils;
 using Duckov.Modding;
 using Duckov.Modding.UI;
 using Duckov.Utilities;
 using JmcModLib.Reflection;
+using JmcModLib.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -89,10 +90,22 @@ namespace BetterModManager.UI
                     ModLogger.Info($"activeObjects.size(): {activeObjects.Count}");
                 }
 
+                // 预获取访问器
+                var infoAccessor = MemberAccessor.Get(typeof(ModEntry), "info");
+                var activeIndicatorAccessor = MemberAccessor.Get(typeof(ModEntry), "activeIndicator");
+                var toggleButtonMethod = MethodAccessor.Get(typeof(ModEntry), "OnToggleButtonClicked", Type.EmptyTypes);
+
                 foreach (ModEntry modEntry in now ? activeObjects : activeObjects.AsEnumerable().Reverse())
                 {
                     var info = MemberAccessor.Get(typeof(ModEntry), "info")
                                              .GetValue<ModEntry, ModInfo>(modEntry);
+
+                    if (LockManager.IsLocked(info))
+                    {
+                        ModLogger.Debug($"模组 {info.name} 已被锁定，跳过全选/反选操作。");
+                        continue;
+                    }
+
                     var toggleButton = MemberAccessor.Get(typeof(ModEntry), "toggleButton")
                                                      .GetValue<ModEntry, Button>(modEntry);
                     var activeIndicator = MemberAccessor.Get(typeof(ModEntry), "activeIndicator")
