@@ -87,13 +87,7 @@
       <GameExe>$(DuckovPath)\Duckov.exe</GameExe>
     </PropertyGroup>
 
-    <Exec
-      Command="powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-        Add-Type -AssemblyName PresentationFramework; ^
-        $res = [System.Windows.MessageBox]::Show('是否现在启动 逃离鸭科夫？','启动游戏','YesNo','Question'); ^
-        if ($res -eq 'Yes') { Start-Process '&quot;$(GameExe)&quot;' }"
-      IgnoreExitCode="true"
-    />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command ^&#xD;&#xA;        Add-Type -AssemblyName PresentationFramework; ^&#xD;&#xA;        $res = [System.Windows.MessageBox]::Show('是否现在启动 逃离鸭科夫？','启动游戏','YesNo','Question'); ^&#xD;&#xA;        if ($res -eq 'Yes') { Start-Process '&quot;$(GameExe)&quot;' }" IgnoreExitCode="true" />
   </Target>
 
 </Project>

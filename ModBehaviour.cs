@@ -15,7 +15,6 @@ namespace BetterModManager
 
         void OnEnable()
         {
-            ModConfig.Load();
             harmonyHelper.OnEnable();
             ModLogger.Info("模组已启用");
         }
@@ -25,13 +24,13 @@ namespace BetterModManager
             ModRegistry.Register(true, info, VersionInfo.Name, VersionInfo.Version)?
                        .RegisterLogger()
                        .Done();
+            BetterModManager.Utils.LockManager.Initialize();
         }
 
         void OnDisable()
         {
             harmonyHelper.OnDisable();
 
-            ModConfig.Save();
             ModLogger.Info("Mod 已禁用，配置已保存");
         }
 
