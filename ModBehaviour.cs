@@ -22,6 +22,7 @@ namespace BetterModManager
         protected override void OnAfterSetup()
         {
             ModRegistry.Register(true, info, VersionInfo.Name, VersionInfo.Version)?
+                       .RegisterL10n()
                        .RegisterLogger()
                        .Done();
             BetterModManager.Utils.LockManager.Initialize();

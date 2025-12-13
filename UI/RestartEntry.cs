@@ -128,11 +128,11 @@ namespace BetterModManager.UI
         {
             SimpleConfirmUI.Show(
                 contextObject: context.transform,
-                message: "是否重启游戏？",
+                message: L10n.Get("是否重启游戏？"),
                 onConfirm: DoReboot,
                 styleTemplate: context,
-                confirmText: "重启",
-                cancelText: "取消",
+                confirmText: L10n.Get("重启"),
+                cancelText: L10n.Get("取消"),
                 confirmColor: new Color(1f, 0.6f, 0f) // 橙色
             );
         }
