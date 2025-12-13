@@ -13,6 +13,7 @@ Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin 
     [*] Click a mod entry to select it, then press [b]W[/b] or the up arrow key to move the mod up, [b]S[/b] or the down arrow key to move it down, and press [b]Enter[/b], [b]ESC[/b], or click anywhere to deselect.
     [*] You can now scroll the interface by dragging with the right mouse button (same behavior as left-click dragging without mods).
     [*] Added a lock button for each entry. Once locked, the entry will be skipped when performing Select All / Deselect All.
+    [*] Added a Restart button to the mod interface. Clicking it will display a confirmation dialog, and the game will restart after confirmation. This is intended for mods that require a restart to take effect.
 [/list]
 
 [h2] 🔔 3. Notes [/h2]
@@ -42,3 +43,8 @@ If you have any feedback or suggestions, feel free to leave a comment in the dis
 You can view the changelog by clicking " [url=https://steamcommunity.com/sharedfiles/filedetails/changelog/3600174953] Change Notes ( view ) [/url]" in the upper-right corner.
 
 [b] If you like this Mod, please consider giving it a thumbs-up! [/b]
+
+If you are using this mod, feel free to join the community to share feedback and discuss:
+
+[url=http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=Kii1sz9bmNmgEgnmsasbKn6h3etgSoQR&authKey=Hni0nbFlbd%2BfDZ1GoklCdtHw4r79SuEsHvz9Pi4qs020w1f8D2DHD8EEnNN1OXo6&noverify=0&group_code=617674584]Click to join the group (617674584)[/url]  
+[url=https://discord.gg/pnrpRmU2]Discord link[/url]

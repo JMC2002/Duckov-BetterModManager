@@ -13,6 +13,7 @@
     [*] 鼠标点击MOD条目后选中该条目，然后按[b]W[/b]或者[b]方向上[/b]上移MOD，按[b]S[/b]或[b]方向下[/b]下移MOD，按[b]Enter[/b]或[b]ESC[/b]或鼠标点击[b]任意处[/b]取消选中
     [*] 右键拖动界面可滚动界面（行为与无MOD时左键拖动相同）
     [*] 给每个条目加上锁定按钮，锁定后，执行全选/全不选时将跳过该条目
+    [*] 给MOD界面增加一个重启按钮，点击后弹出一个确认框，确认后将重启游戏，用于某些需要重启后生效的MOD
 [/list]
 
 [h2] 🔔 3. 提醒 [/h2]
@@ -49,3 +50,7 @@
 [*] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3614940164]更多的比特币矿机[/url] - 让你可以建造更多比特币矿机的 MOD。
 [*] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3613297900]JmcModLib[/url] - 一个开发工具前置库。
 [/list]
+
+如果有人使用此MOD，欢迎加入群交流反馈：
+[url=http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=Kii1sz9bmNmgEgnmsasbKn6h3etgSoQR&authKey=Hni0nbFlbd%2BfDZ1GoklCdtHw4r79SuEsHvz9Pi4qs020w1f8D2DHD8EEnNN1OXo6&noverify=0&group_code=617674584] 点击入群（617674584） [/url]
+[url=https://discord.gg/pnrpRmU2] Discord链接 [/url]
