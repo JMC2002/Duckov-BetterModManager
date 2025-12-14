@@ -1,42 +1,29 @@
 ﻿using BetterModManager.Core;
-using BetterModManager.Patches;
-using JmcModLib.Core;
-using JmcModLib.Utils;
+using Duckov.Modding;
+using UnityEngine;
 
 namespace BetterModManager
 {
-    public class ModBehaviour : Duckov.Modding.ModBehaviour
+    // 继承 DependencyModLoader
+    public class ModBehaviour : DependencyModLoader
     {
-        private HarmonyHelper harmonyHelper = new("BetterModManager");
-
-        void Awake()
+        protected override string[] GetDependencies()
         {
+            return
+            [
+                "JmcModLib",
+            ];
         }
 
-        void OnEnable()
+        // 挂载实际业务脚本
+        protected override MonoBehaviour CreateImplementation(ModManager master, ModInfo info)
         {
-            harmonyHelper.OnEnable();
-            ModLogger.Info("模组已启用");
-        }
+            // 1. 挂载组件
+            var impl = this.gameObject.AddComponent<ModBehaviourImpl>();
 
-        protected override void OnAfterSetup()
-        {
-            ModRegistry.Register(true, info, VersionInfo.Name, VersionInfo.Version)?
-                       .RegisterL10n()
-                       .RegisterLogger()
-                       .Done();
-            BetterModManager.Utils.LockManager.Initialize();
-        }
+            impl.Setup(master, info);
 
-        void OnDisable()
-        {
-            harmonyHelper.OnDisable();
-
-            ModLogger.Info("Mod 已禁用，配置已保存");
-        }
-
-        void OnDestroy()
-        {
+            return impl;
         }
     }
 }
