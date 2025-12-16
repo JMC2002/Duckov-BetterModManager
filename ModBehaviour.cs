@@ -7,11 +7,12 @@ namespace BetterModManager
     // 继承 DependencyModLoader
     public class ModBehaviour : DependencyModLoader
     {
-        protected override string[] GetDependencies()
+        protected override ModDependency[] GetDependencies()
         {
+            // 这里是所有的前置依赖项，在加载完前置后才会加载实际的脚本
             return
             [
-                "JmcModLib",
+                new ModDependency("JmcModLib", 3613297900),
             ];
         }
 

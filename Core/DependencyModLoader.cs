@@ -1,19 +1,35 @@
 ﻿using Duckov.Modding;
 using SodaCraft.Localizations;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
+// 项目地址：https://github.com/JMC2002/ModTemplate
 namespace BetterModManager.Core
 {
-    // 建议设为 internal，防止不同 MOD 之间类名冲突
+    // 依赖项结构体
+    public struct ModDependency
+    {
+        public string Name;
+        public ulong SteamId;
+        public ModDependency(string name, ulong steamId = 0) { Name = name; SteamId = steamId; }
+        public static implicit operator ModDependency(string name) => new(name);
+    }
+
     // 如果你在多个 MOD 里用这份代码，请确保 namespace 不同，或者使用 internal
     public abstract class DependencyModLoader : Duckov.Modding.ModBehaviour
     {
+        // 当前DependencyModLoader代码版本号
+        public const string LOADER_VERSION = "1.0.1";
+
         private HashSet<string> _missingDependencies = default!;
         private bool _isLoaded = false;
+
+        // 存储依赖项的 SteamID 映射
+        private Dictionary<string, ulong> _dependencyIdMap = default!;
 
         // --- UI 显示控制 ---
         private bool _showUI = false;
@@ -21,121 +37,175 @@ namespace BetterModManager.Core
         private string _uiMessage = "";
         private Color _uiColor = Color.red;
 
+        // UI 交互：点击时需要打开的 SteamID 列表
+        private List<ulong> _targetSteamIdsForUI = [];
+
         // --- 堆叠控制 ---
         // 这是一个特殊的标识符，所有用这份代码的 MOD 都会认得它
         private const string TOKEN_NAME = "__DEP_UI_TOKEN__";
         private GameObject _myToken = default!; // 我生成的那个标记物体
 
+        // 设置一个“耐心时间”，超过这个时间还没加载完，才显示提示
+        // 建议设为 5-8 秒，足以覆盖大多数慢速加载的情况
+        private const float PATIENCE_TIME = 5.0f;
+
         // 必须实现：定义依赖列表
-        protected abstract string[] GetDependencies();
+        protected abstract ModDependency[] GetDependencies();
         // 必须实现：创建业务逻辑组件
         protected abstract MonoBehaviour CreateImplementation(ModManager master, ModInfo info);
 
         protected override void OnAfterSetup()
         {
+            Debug.Log($"[{info.name}] Initializing DependencyLoader v{LOADER_VERSION} ...");
+
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
-            var required = GetDependencies();
-            if (required == null || required.Length == 0)
+            var requiredDeps = GetDependencies();
+            if (requiredDeps == null || requiredDeps.Length == 0)
             {
                 TryInitImplementation();
                 return;
             }
 
-            _missingDependencies = [.. required];
+            // 1. 构建映射并初始化缺失列表
+            _dependencyIdMap = [];
+            var requiredNames = new List<string>();
 
-            // 准备反射：获取官方判断是否激活的方法
-            var checkMethod = typeof(ModManager).GetMethod("ShouldActivateMod", BindingFlags.Instance | BindingFlags.NonPublic);
-
-            if (checkMethod == null)
+            foreach (var dep in requiredDeps)
             {
+                _dependencyIdMap[dep.Name] = dep.SteamId;
+                requiredNames.Add(dep.Name);
+            }
+
+            _missingDependencies = [.. requiredNames];
+
+            // 2. 物理检查：文件夹是否存在？
+            var installedMods = ModManager.modInfos.Select(m => m.name).ToHashSet();
+            List<string> notInstalledList = [];
+            List<ulong> missingIds = []; // 收集缺失的 ID
+
+            foreach (var req in requiredNames)
+            {
+                if (!installedMods.Contains(req))
+                {
+                    notInstalledList.Add(req);
+                    // 如果有 ID，加到列表里
+                    if (_dependencyIdMap.TryGetValue(req, out ulong id) && id > 0)
+                    {
+                        missingIds.Add(id);
+                    }
+                }
+            }
+
+            if (notInstalledList.Count > 0)
+            {
+                // 严重错误：未安装
+                // 传入 missingIds，让 UI 知道点击要跳转
                 ShowNotification(
-                    GetLocalizedText("API_ERR_TITLE"),
-                    GetLocalizedText("API_ERR_MSG"),
-                    true
+                    GetLocalizedText("MISSING_TITLE"),
+                    $"{GetLocalizedText("MISSING_MSG")}\n{string.Join(", ", notInstalledList)}",
+                    true,
+                    missingIds
                 );
                 return;
             }
 
-            List<string> notInstalledList = []; // 完全没安装
-            List<string> disabledList = [];     // 安装了但没勾选
+            // 3. 内存检查
+            CheckByAppDomain();
 
-            // 2. 遍历每一个依赖项进行检查
-            foreach (var reqName in required)
+            if (_missingDependencies.Count == 0)
             {
-                // 查找所有同名 MOD (兼容本地和工坊共存的情况)
-                var matchingMods = ModManager.modInfos.Where(m => m.name == reqName).ToList();
+                TryInitImplementation();
+                return;
+            }
 
-                if (matchingMods.Count == 0)
+            // 4. 原生配置检查 (仅用于日志和判断)
+            List<string> nativelyDisabled = GetNativelyDisabledMods(_missingDependencies);
+
+            if (nativelyDisabled.Count > 0)
+            {
+                Debug.LogWarning($"[{info.name}] 原生配置显示依赖未启用，进入超时检查模式: {string.Join(", ", nativelyDisabled)}");
+            }
+            else
+            {
+                Debug.Log($"[{info.name}] 正在等待依赖加载: {string.Join(", ", _missingDependencies)}");
+            }
+
+            ModManager.OnModActivated += OnModActivatedHandler;
+            StartCoroutine(WaitForDependencyRoutine());
+        }
+
+        // --- 等待协程 ---
+        private IEnumerator WaitForDependencyRoutine()
+        {
+            float timer = 0f;
+            bool warningShown = false;
+
+            while (!_isLoaded)
+            {
+                CheckByAppDomain();
+
+                if (_missingDependencies.Count == 0)
                 {
-                    notInstalledList.Add(reqName);
-                    continue;
+                    if (warningShown) CloseNotification();
+                    TryInitImplementation();
+                    yield break;
                 }
 
-                // 检查是否启用
+                timer += Time.deltaTime;
+
+                if (timer > PATIENCE_TIME && !warningShown)
+                {
+                    warningShown = true;
+                    // 等待超时：这是“未启用”或“太慢”，不需要跳转 Steam
+                    ShowNotification(
+                        GetLocalizedText("WAITING_TITLE"),
+                        $"{GetLocalizedText("WAITING_MSG")}\n{string.Join(", ", _missingDependencies)}",
+                        false,
+                        null // 不需要跳转
+                    );
+                }
+
+                yield return null;
+            }
+        }
+
+        private void CheckByAppDomain()
+        {
+            // 获取当前内存里所有的程序集名字
+            var loadedAsms = AppDomain.CurrentDomain.GetAssemblies()
+                                .Select(a => a.GetName().Name)
+                                .ToHashSet();
+
+            // 如果依赖项出现在内存里，直接移除，视为已解决
+            _missingDependencies.RemoveWhere(loadedAsms.Contains);
+        }
+
+        private List<string> GetNativelyDisabledMods(HashSet<string> targets)
+        {
+            var list = new List<string>();
+            var checkMethod = typeof(ModManager).GetMethod("ShouldActivateMod", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (checkMethod == null) return list;
+
+            foreach (var req in targets)
+            {
+                // 本地和创意工坊可能有多个同名 ModInfo，任一启用即可
+                var matchingMods = ModManager.modInfos.Where(m => m.name == req).ToList();
+                if (matchingMods.Count == 0) continue;
+
                 bool isAnyEnabled = false;
                 foreach (var modInfo in matchingMods)
                 {
                     try
                     {
-                        bool isEnabled = (bool)checkMethod.Invoke(ModManager.Instance, new object[] { modInfo });
-                        if (isEnabled)
-                        {
-                            isAnyEnabled = true;
-                            break;
-                        }
+                        if ((bool)checkMethod.Invoke(ModManager.Instance, new object[] { modInfo }))
+                        { isAnyEnabled = true; break; }
                     }
-                    catch { /* 忽略反射异常 */ }
+                    catch { }
                 }
-
-                if (!isAnyEnabled)
-                {
-                    disabledList.Add(reqName);
-                }
+                if (!isAnyEnabled) list.Add(req);
             }
-
-            // 3. 处理结果
-
-            // 情况 A：严重错误 - 未安装
-            if (notInstalledList.Count > 0)
-            {
-                ShowNotification(
-                    GetLocalizedText("MISSING_TITLE"),
-                    $"{GetLocalizedText("MISSING_MSG")}\n{string.Join(", ", notInstalledList)}",
-                    true
-                );
-                return; // 终止加载
-            }
-
-            // 情况 B：警告 - 未启用
-            if (disabledList.Count > 0)
-            {
-                // 弹出一个黄色警告，告诉玩家去勾选，但不终止程序（因为玩家可能马上就去勾选了）
-                ShowNotification(
-                    GetLocalizedText("DISABLED_TITLE"),
-                    $"{GetLocalizedText("DISABLED_MSG")}\n{string.Join(", ", disabledList)}",
-                    false
-                );
-                Debug.LogWarning($"[{info.name}] 等待前置库启用: {string.Join(", ", disabledList)}");
-            }
-
-            // 情况 C：检查是否已经在内存里 (应对加载顺序)
-            CheckAlreadyLoaded();
-
-            if (_missingDependencies.Count == 0)
-            {
-                TryInitImplementation();
-            }
-            else
-            {
-                // 还有依赖没加载（可能是未启用，也可能是排在后面）
-                // 订阅事件等待
-                if (disabledList.Count == 0)
-                {
-                    Debug.Log($"[{info.name}] 正在等待加载顺序: {string.Join(", ", _missingDependencies)}");
-                }
-                ModManager.OnModActivated += OnModActivatedHandler;
-            }
+            return list;
         }
 
         private void CheckAlreadyLoaded()
@@ -157,9 +227,6 @@ namespace BetterModManager.Core
 
                 if (_missingDependencies.Count == 0)
                 {
-                    // 如果因为之前的“未启用”弹出了警告框，现在自动关闭它，因为玩家已经启用了
-                    _showUI = false;
-
                     ModManager.OnModActivated -= OnModActivatedHandler;
                     TryInitImplementation();
                 }
@@ -170,8 +237,13 @@ namespace BetterModManager.Core
         {
             if (_isLoaded) return; // 如果有严重错误UI，也可以选择继续加载或者不加载，通常如果没报错就可以加载
 
+            // 成功加载后关闭可能存在的通知UI
             // 即使有黄色警告UI，只要依赖齐了，也允许加载
-            // (CreateImplementation 内部会 AddComponent，此时 JmcModLib 肯定在内存里)
+            CloseNotification();
+
+
+            Debug.Log($"[{info.name}] 依赖就绪，启动业务逻辑。");
+            // (CreateImplementation 内部会 AddComponent，此时前置库肯定在内存里)
             CreateImplementation(this.master, this.info);
             _isLoaded = true;
         }
@@ -196,7 +268,7 @@ namespace BetterModManager.Core
         }
 
         // --- UI 方法 ---
-        private void ShowNotification(string title, string msg, bool isFatal)
+        private void ShowNotification(string title, string msg, bool isFatal, List<ulong>? steamIds = null)
         {
             _showUI = true;
             _uiTitle = $"[{info.displayName}] {title}";
@@ -207,6 +279,8 @@ namespace BetterModManager.Core
                                ? new Color(0.9f, 0.2f, 0.2f, 1f)  // 红色
                                : new Color(0.9f, 0.5f, 0.0f, 1f); // 深橙色 (适配白字)
 
+            // 保存需要跳转的 ID
+            _targetSteamIdsForUI = steamIds ?? [];
 
             // 生成一个看不见的 Token，作为我们“正在显示UI”的信标
             if (_myToken == null)
@@ -264,6 +338,113 @@ namespace BetterModManager.Core
             return activeTokens.IndexOf(this.name);
         }
 
+        // --- 核心修改 1: 检测 Steam 是否在运行 ---
+        private bool IsSteamRunning()
+        {
+            try
+            {
+                // 反射检查 SteamAPI.IsSteamRunning()
+                // 这样不需要引用 Steamworks.NET.dll 也能编译
+                Type steamApiType = Type.GetType("Steamworks.SteamAPI, com.rlabrecque.steamworks.net") ?? AppDomain.CurrentDomain.GetAssemblies()
+                        .SelectMany(a => a.GetTypes())
+                        .FirstOrDefault(t => t.FullName == "Steamworks.SteamAPI");
+                if (steamApiType != null)
+                {
+                    MethodInfo isRunningMethod = steamApiType.GetMethod("IsSteamRunning", BindingFlags.Public | BindingFlags.Static);
+                    if (isRunningMethod != null)
+                    {
+                        return (bool)isRunningMethod.Invoke(null, null);
+                    }
+                }
+            }
+            catch
+            {
+                // 忽略异常，默认认为没运行
+            }
+            return false;
+        }
+
+        // 通过内部浏览器根据单个 SteamID 打开创意工坊页面
+        private void OpenWorkshopPage(ulong id)
+        {
+            string url = $"https://steamcommunity.com/sharedfiles/filedetails/?id={id}";
+            bool success = false;
+
+            try
+            {
+                // 查找 SteamFriends 类型
+                Type steamFriendsType = Type.GetType("Steamworks.SteamFriends, com.rlabrecque.steamworks.net") ?? AppDomain.CurrentDomain.GetAssemblies()
+                        .SelectMany(a => a.GetTypes())
+                        .FirstOrDefault(t => t.FullName == "Steamworks.SteamFriends");
+                if (steamFriendsType != null)
+                {
+                    // 获取方法信息
+                    MethodInfo activateOverlayMethod = steamFriendsType.GetMethod("ActivateGameOverlayToWebPage", BindingFlags.Public | BindingFlags.Static);
+
+                    if (activateOverlayMethod != null)
+                    {
+                        // Steamworks.NET 不同版本该方法的参数数量不同（有的1个，有的2个）
+                        var parameters = activateOverlayMethod.GetParameters();
+
+                        if (parameters.Length == 1)
+                        {
+                            // 旧版本：只接受 URL
+                            activateOverlayMethod.Invoke(null, [url]);
+                        }
+                        else if (parameters.Length == 2)
+                        {
+                            // 新版本：接受 URL + Mode
+                            // 第二个参数是 Enum，传 int 0 对应 k_EActivateGameOverlayToWebPageMode_Default
+                            activateOverlayMethod.Invoke(null, [url, 0]);
+                        }
+
+                        success = true;
+                        Debug.Log($"[{info.name}] 已通过 Steam Overlay 打开: {id}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[{info.name}] 无法呼出 Steam Overlay，回退到系统浏览器。原因: {ex.Message}");
+            }
+
+            // 回退机制
+            if (!success)
+            {
+                Debug.Log($"[{info.name}] 通过系统默认浏览器打开订阅页面: {id}");
+                Application.OpenURL(url);
+            }
+        }
+
+        // --- 批量打开 ---
+        private void OpenWorkshopPage(List<ulong> ids)
+        {
+            if (ids == null || ids.Count == 0) return;
+
+            // 检查是否是 Steam 环境
+            bool isSteam = IsSteamRunning();
+
+            if (!isSteam)
+            {
+                // 非 Steam 玩家：全部用 HTTP 打开外部浏览器
+                foreach (var id in ids)
+                {
+                    Application.OpenURL($"https://steamcommunity.com/sharedfiles/filedetails/?id={id}");
+                }
+            }
+            else if (ids.Count == 1)
+            {
+                // 当只缺一个前置，直接用 Steam 打开
+                Application.OpenURL($"steam://url/CommunityFilePage/{ids[0]}");
+            }
+            else // 否则在内部浏览器中打开，因为 Steam 协议只能打开一个
+            {
+                foreach (var id in ids)
+                {
+                    OpenWorkshopPage(id);
+                }
+            }
+        }
 
         private void OnGUI()
         {
@@ -297,8 +478,15 @@ namespace BetterModManager.Core
             Color originalColor = GUI.backgroundColor;
             GUI.backgroundColor = _uiColor;
 
+            // --- 点击背景 ---
             if (GUI.Button(boxRect, ""))
             {
+                // 如果有 SteamID，点击背景是打开浏览器
+                if (_targetSteamIdsForUI != null && _targetSteamIdsForUI.Count > 0)
+                {
+                    OpenWorkshopPage(_targetSteamIdsForUI);
+                }
+
                 CloseNotification();
             }
 
@@ -309,8 +497,7 @@ namespace BetterModManager.Core
                 boxRect.height - (16 * scale)
             );
 
-            // --- 样式定义 (关键：清除默认边距) ---
-
+            // --- 样式定义 (清除默认边距) ---
             GUIStyle titleStyle = new(GUI.skin.label)
             {
                 fontSize = Mathf.RoundToInt(18 * scale),
@@ -357,14 +544,25 @@ namespace BetterModManager.Core
             // 自动撑开，把关闭按钮推到底部
             GUILayout.FlexibleSpace();
 
-            // 关闭按钮
-            GUILayout.Label(GetLocalizedText("CLOSE_BTN"), tipStyle);
+            // --- 动态提示文字 ---
+            string tipText;
+            if (_targetSteamIdsForUI != null && _targetSteamIdsForUI.Count > 0)
+            {
+                // 如果有链接，显示“点击订阅”
+                tipText = GetLocalizedText("SUBSCRIBE_BTN");
+            }
+            else
+            {
+                // 否则显示“点击关闭”
+                tipText = GetLocalizedText("CLOSE_BTN");
+            }
+            GUILayout.Label(tipText, tipStyle);
 
             GUILayout.EndArea();
 
             GUI.backgroundColor = originalColor;
         }
-        // --- 核心新增：轻量级本地化方法 ---
+        // --- 轻量级本地化方法 ---
         private string GetLocalizedText(string key)
         {
             SystemLanguage lang = LocalizationManager.CurrentLanguage;
@@ -474,6 +672,51 @@ namespace BetterModManager.Core
                     SystemLanguage.Russian => "[ Закрыть ]",
                     SystemLanguage.Spanish => "[ Cerrar ]",
                     _ => "[ Click to Close ]"
+                },
+
+                // Key 8: 等待提示标题
+                "WAITING_TITLE" => lang switch
+                {
+                    SystemLanguage.Chinese or SystemLanguage.ChineseSimplified => "正在等待前置...",
+                    SystemLanguage.ChineseTraditional => "正在等待前置...",
+                    SystemLanguage.French => "En attente de dépendance...",
+                    SystemLanguage.German => "Warten auf Abhängigkeit...",
+                    SystemLanguage.Japanese => "前提MOD待機中...",
+                    SystemLanguage.Korean => "선행 MOD 대기 중...",
+                    SystemLanguage.Portuguese => "Aguardando Dependência...",
+                    SystemLanguage.Russian => "Ожидание зависимости...",
+                    SystemLanguage.Spanish => "Esperando Dependencia...",
+                    _ => "Waiting for Dependency..."
+                },
+
+                // Key 9: 等待提示内容
+                "WAITING_MSG" => lang switch
+                {
+                    SystemLanguage.Chinese or SystemLanguage.ChineseSimplified => "加载时间较长，或前置库未启用。\n请耐心等待，或检查 MOD 列表是否勾选:",
+                    SystemLanguage.ChineseTraditional => "加載時間較長，或前置庫未啟用。\n請耐心等待，或檢查 MOD 列表是否勾選:",
+                    SystemLanguage.French => "Le chargement est plus long que prévu ou la dépendance est désactivée.\nVeuillez patienter ou vérifier si elle est activée :",
+                    SystemLanguage.German => "Laden dauert länger als erwartet oder Abhängigkeit ist deaktiviert.\nBitte warten oder prüfen, ob aktiviert:",
+                    SystemLanguage.Japanese => "読み込みに時間がかかっているか、無効化されています。\n待機するか、有効化されているか確認してください:",
+                    SystemLanguage.Korean => "로딩이 지연되거나 선행 MOD가 비활성화되었습니다.\n잠시 기다리거나 활성화 여부를 확인하십시오:",
+                    SystemLanguage.Portuguese => "O carregamento demora mais que o esperado ou a dependência está desativada.\nAguarde ou verifique se está ativada:",
+                    SystemLanguage.Russian => "Загрузка длится дольше обычного или зависимость отключена.\nПодождите или проверьте, включена ли она:",
+                    SystemLanguage.Spanish => "La carga tarda más de lo esperado o la dependencia está desactivada.\nEspere o verifique si está activada:",
+                    _ => "Loading takes longer than expected, or dependency is disabled.\nPlease wait, or check if enabled:"
+                },
+
+                // Key 10: 订阅按钮文本
+                "SUBSCRIBE_BTN" => lang switch
+                {
+                    SystemLanguage.Chinese or SystemLanguage.ChineseSimplified => "[ 点击订阅 ]",
+                    SystemLanguage.ChineseTraditional => "[ 點擊訂閱 ]",
+                    SystemLanguage.French => "[ S'abonner ]",
+                    SystemLanguage.German => "[ Abonnieren ]",
+                    SystemLanguage.Japanese => "[ 購読する ]",
+                    SystemLanguage.Korean => "[ 구독하기 ]",
+                    SystemLanguage.Portuguese => "[ Inscrever-se ]",
+                    SystemLanguage.Russian => "[ Подписаться ]",
+                    SystemLanguage.Spanish => "[ Suscribirse ]",
+                    _ => "[ Click to Subscribe ]"
                 },
 
                 _ => key // Fallback: return key itself if not found

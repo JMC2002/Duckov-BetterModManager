@@ -18,7 +18,11 @@
 
 [h2] 🔔 3. 提醒 [/h2]
 [list]
-    [*] [b]本MOD强依赖于[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3613297900]JmcModLib[/url]，请务必将这个MOD置于本MOD上方[/b]
+    [*] 本 MOD 需要前置：  
+• [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3613297900]JmcModLib[/url]  
+
+需要安装此MOD才能正常使用，但是不依赖彼此加载顺序，仅需将这两个MOD都启用即可；若未启用或未订阅前置，会弹窗提醒，弹窗参考[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3624342813] 前置依赖无序化模板 [/url]。
+
     [*] 本MOD可安全卸载，理论上完全不会影响存档
     [*] 首次启动MOD需要重启游戏
     [*] 全部启用/禁用的原理是从第一条MOD开始从上至下依次启用，遇到MOD条目过多的情况卡一下是正常现象

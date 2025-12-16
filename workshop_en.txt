@@ -18,7 +18,13 @@ Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin 
 
 [h2] 🔔 3. Notes [/h2]
 [list]
-    [*] [b]This mod has a hard dependency on [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3613297900]JmcModLib[/url]. Please make sure to place that mod above this one.[/b]
+    [*] This mod requires the following dependencies:  
+• [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3613297900]JmcModLib[/url]  
+
+This mod is required for proper functionality, but there is no load-order dependency between them—both mods only need to be enabled.  
+If the dependency is not enabled or not subscribed, a popup reminder will appear. The popup behavior is based on the  
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3624342813] Order-Independent Dependency Template[/url].
+
     [*] This mod can be safely uninstalled and will not affect your save files
     [*] A restart is required the first time the mod is activated
     [*] The principle behind enabling/disabling all mods is to enable them sequentially from the first mod entry downwards. It is normal to experience a brief delay if there are too many mod entries.
