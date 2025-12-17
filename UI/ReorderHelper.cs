@@ -1,8 +1,9 @@
-﻿using Duckov.Modding;
+﻿using BetterModManager.Utils;
+using Duckov.Modding;
 using Duckov.Modding.UI;
-using System;
-using JmcModLib.Utils;
 using JmcModLib.Reflection;
+using JmcModLib.Utils;
+using System;
 
 namespace BetterModManager.UI
 {
@@ -35,6 +36,36 @@ namespace BetterModManager.UI
 
         private static bool ReorderImpl(int srcIdx, int dstIdx)
         {
+            // 基础合法性检查
+            if (srcIdx < 0 || srcIdx > BottomIdx || dstIdx < 0 || dstIdx > BottomIdx || srcIdx == dstIdx)
+                return false;
+
+            var srcInfo = ModManager.modInfos[srcIdx];
+            bool isSrcPinned = PinManager.IsPinned(srcInfo);
+            int pinnedCount = PinManager.GetPinnedCount();
+
+            // 情况A: 移动的是置顶 Mod
+            if (isSrcPinned)
+            {
+                // 置顶 Mod 只能在 [0, pinnedCount - 1] 范围内移动
+                // 这里的 pinnedCount - 1 是置顶区的最后一个位置
+                if (dstIdx >= pinnedCount)
+                {
+                    ModLogger.Warn($"[Reorder] 无法将置顶 Mod '{srcInfo.name}' 移出置顶区");
+                    return false;
+                }
+            }
+            // 情况B: 移动的是普通 Mod
+            else
+            {
+                // 普通 Mod 只能在 [pinnedCount, BottomIdx] 范围内移动
+                if (dstIdx < pinnedCount)
+                {
+                    ModLogger.Warn($"[Reorder] 无法将普通 Mod '{srcInfo.name}' 移入置顶区");
+                    return false;
+                }
+            }
+
             return ModManager.Reorder(srcIdx, dstIdx);
         }
 
