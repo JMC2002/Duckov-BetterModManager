@@ -1,11 +1,10 @@
-﻿using BetterModManager.Utils;
-using Duckov.Modding;
+﻿using Duckov.Modding;
 using Duckov.Modding.UI;
 using JmcModLib.Reflection;
 using JmcModLib.Utils;
 using System;
 
-namespace BetterModManager.UI
+namespace BetterModManager.Utils
 {
     public static class ReorderHelper
     {
