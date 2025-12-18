@@ -118,6 +118,15 @@ namespace BetterModManager.Utils
                 ReorderImpl(srcIdx, dstIdx);
                 ModLogger.Info($"'{info.name}' {(newPinnedState ? "置顶" : "取消置顶")} -> 移动到 {dstIdx}");
             }
+            else
+            {
+                // 如果位置没变（比如它是置顶区最后一个，或者普通区第一个），
+                // 还是需要刷新一下列表，因为 UI 图标变了
+                // ModManager.Reorder 会触发 OnReorder 事件刷新 UI
+                // 但如果位置没变 Reorder 会返回 false 且不触发事件
+                // 所以我们需要手动触发刷新
+                ModManager.Instance.Invoke("OnReorder", 0f); // 这是一个 hack，或者直接通过反射调用 OnReorder?.Invoke()
+            }
         }
 
         public static void Reorder(int srcIdx, int dstIdx)

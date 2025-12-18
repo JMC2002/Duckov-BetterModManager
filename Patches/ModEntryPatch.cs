@@ -1,9 +1,7 @@
 ﻿using BetterModManager.UI;
-using BetterModManager.Utils;
 using Duckov.Modding;
 using Duckov.Modding.UI;
 using HarmonyLib;
-using JmcModLib.Reflection;
 using JmcModLib.Utils;
 
 namespace BetterModManager.Patches

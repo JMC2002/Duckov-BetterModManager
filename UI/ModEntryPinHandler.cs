@@ -64,17 +64,17 @@ namespace BetterModManager.UI
             {
                 // 只有真的找不到时，才实例化新的
                 _pinBtn = Instantiate(anchorBtn, parent);
-                _pinBtn.name = "btnPin";
-                foreach (Transform child in _pinBtn.transform) Destroy(child.gameObject);
+            _pinBtn.name = "btnPin";
+            foreach (Transform child in _pinBtn.transform) Destroy(child.gameObject);
 
-                // 调整位置：
-                // 锁的位置是 1.2 倍宽度。置顶按钮放在锁的左边。
-                // 假设锁在 anchor - 1.2w，那置顶就在 anchor - 2.4w
-                RectTransform rt = _pinBtn.GetComponent<RectTransform>();
-                RectTransform anchorRt = anchorBtn.GetComponent<RectTransform>();
-                rt.sizeDelta = anchorRt.sizeDelta;
+            // 调整位置：
+            // 锁的位置是 1.2 倍宽度。置顶按钮放在锁的左边。
+            // 假设锁在 anchor - 1.2w，那置顶就在 anchor - 2.4w
+            RectTransform rt = _pinBtn.GetComponent<RectTransform>();
+            RectTransform anchorRt = anchorBtn.GetComponent<RectTransform>();
+            rt.sizeDelta = anchorRt.sizeDelta;
                 // 向左偏移 2.4 倍宽度
-                rt.anchoredPosition = anchorRt.anchoredPosition - new Vector2(anchorRt.rect.width * 2.4f, 0);
+            rt.anchoredPosition = anchorRt.anchoredPosition - new Vector2(anchorRt.rect.width * 2.4f, 0);
             }
 
             // 绑定事件
