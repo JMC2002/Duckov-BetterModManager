@@ -17,8 +17,6 @@ namespace BetterModManager.Core
                        .RegisterLogger()
                        .Done();
 
-            BetterModManager.Utils.LockManager.Initialize();
-
             harmonyHelper.OnEnable();
             ModLogger.Info("模组已启用 (延迟加载成功)");
         }
