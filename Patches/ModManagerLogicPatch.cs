@@ -1,6 +1,8 @@
 ﻿using BetterModManager.Utils;
 using Duckov.Modding;
 using HarmonyLib;
+using JmcModLib.Config;
+using JmcModLib.Config.UI;
 using JmcModLib.Storage; // 引用新的 JmcES3Manager
 using System.Reflection; // 需要引用这个来获取 Assembly
 
@@ -9,6 +11,10 @@ namespace BetterModManager.Patches
     [HarmonyPatch(typeof(ModManager))]
     public static class ModManagerLogicPatch
     {
+        [UIToggle]
+        [Config("是否修复官方的本地与创意工坊同名 Mod 混淆BUG")]
+        private static bool EnablePatch = true;
+
         // 缓存当前程序集，避免每次调用 Save/Load 都走 StackTrace 查找 (微小的性能优化)
         private static readonly Assembly _currentAssembly = Assembly.GetExecutingAssembly();
 
@@ -36,6 +42,8 @@ namespace BetterModManager.Patches
         [HarmonyPatch("ShouldActivateMod")]
         private static bool PrefixShouldActivateMod(ModInfo info, ref bool __result)
         {
+            if (!EnablePatch) return true;
+
             string key = info.GetBmmStateKey();
             int state = JmcES3Manager.Load(key, -1, _currentAssembly);
 
@@ -48,6 +56,7 @@ namespace BetterModManager.Patches
         [HarmonyPatch("SetShouldActivateMod")]
         private static void PostfixSetShouldActivateMod(ModInfo info, bool value)
         {
+            if (!EnablePatch) return;
             string key = info.GetBmmStateKey();
             JmcES3Manager.Save(key, value ? 1 : 0, _currentAssembly);
         }
