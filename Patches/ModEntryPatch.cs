@@ -1,7 +1,8 @@
-﻿using BetterModManager.UI;
+﻿using BetterModManager.Utils;
 using Duckov.Modding;
 using Duckov.Modding.UI;
 using HarmonyLib;
+using JmcModLib.Reflection;
 using JmcModLib.Utils;
 
 namespace BetterModManager.Patches
@@ -20,7 +21,7 @@ namespace BetterModManager.Patches
 
             ComponentHelper.AddComponentAlways<UI.ModEntryLockHandler>(
                 __instance.gameObject,
-                handler => handler.Setup(__instance, (locked) => {
+                handler => handler.Setup(__instance, modInfo, (locked) => {
                     ModLogger.Debug($"回调触发：锁定状态 = {locked}");
                 }),
                 "ModEntryLockHandler 已添加并初始化"
