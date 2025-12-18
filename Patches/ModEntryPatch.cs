@@ -2,8 +2,12 @@
 using Duckov.Modding;
 using Duckov.Modding.UI;
 using HarmonyLib;
+using JmcModLib.Config;
+using JmcModLib.Config.UI;
 using JmcModLib.Reflection;
 using JmcModLib.Utils;
+using System.Collections.Generic;
+using TMPro;
 
 namespace BetterModManager.Patches
 {
@@ -54,6 +58,39 @@ namespace BetterModManager.Patches
             ReorderHelper.Dec(index);
 
             return false;
+        }
+
+        [UIIntSlider(0, 2)]
+        [Config("颜色方案")]
+        private static int colorIdx = 0;
+
+        [UIIntSlider(1, 200)]
+        [Config("版本号字体大小 (%)")]
+        private static int versionFontSize = 100;
+
+        // Patch 目标：RefreshInfo 方法
+        [HarmonyPatch("RefreshInfo")]
+        [HarmonyPostfix]
+        private static void Postfix(
+            // Harmony 会自动注入名为 textName 的私有字段
+            TextMeshProUGUI ___textName,
+            // Harmony 会自动注入名为 info 的私有字段
+            ModInfo ___info)
+        {
+            if (___textName == null) return;
+
+            // 检查版本号是否存在且不为空
+            if (!string.IsNullOrWhiteSpace(___info.version))
+            {
+                List<string> colorHex = new List<string>()
+                {
+                    "#2E5A88", // 方案 1: 深海蓝 (Steel Blue / Deep Blue) - 推荐
+                    "#333333", // 方案 2: 深炭灰 (Dark Charcoal) - 如果你想要极致的清晰度
+                    "#FFD700"  // 方案 3: 淡金色 (Gold) - 如果背景蓝比较深，这个会很好看；如果背景很亮，这个可能会看不清
+                };
+
+                ___textName.text += $" <size={versionFontSize}%><color={colorHex[colorIdx]}>v{___info.version}</color></size>";
+            }
         }
     }
 }
