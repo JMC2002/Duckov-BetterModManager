@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using JmcModLib.Utils;
 using JmcModLib.Reflection;
+using BetterModManager.Utils;
 
 namespace BetterModManager.UI
 {

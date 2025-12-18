@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using JmcModLib.Utils;
+using BetterModManager.Utils;
 
 namespace BetterModManager.UI
 {
@@ -183,7 +184,7 @@ namespace BetterModManager.UI
 
             if (canvasGroup != null)
             {
-                ModLogger.Debug($"当前canvasGroup.alpha: {canvasGroup.alpha}");
+                ModLogger.Trace($"当前canvasGroup.alpha: {canvasGroup.alpha}");
             }
 
             if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
@@ -197,32 +198,27 @@ namespace BetterModManager.UI
 
             Reset();
             preIdx = null;
-            ModLogger.Debug("处理点击事件完毕");
+            ModLogger.Trace("处理点击事件完毕");
         }
 
         // 键盘事件监听
         private IEnumerator WaitForKeyPress()
         {
             yield return new WaitUntil(() => isListening && waitingKeyLock && (GetUp() || GetDown()));
-            ModLogger.Debug("WaitForKeyPress被触发");
+            ModLogger.Trace("WaitForKeyPress被触发");
             waitingKeyLock = false;
             var name = ReorderHelper.GetName(nowIdx);
             ModLogger.Debug($"{name}: ");
             // 检测 W 或 上键
             if (GetUp())
             {
-                preIdx = ReorderHelper.Clamp(nowIdx - 1);
-                
-                ModLogger.Info($"按下了 W 或 上箭头键，目标为{preIdx}");
+                ModLogger.Debug($"按下了 W 或 上箭头键");
                 ReorderHelper.Inc(nowIdx);
-                ModLogger.Debug("继续");
             }
             else
             {
-                preIdx = ReorderHelper.Clamp(nowIdx + 1);
-                ModLogger.Info($"按下了 S 或 下箭头键，目标为{preIdx}");
+                ModLogger.Debug($"按下了 S 或 下箭头键");
                 ReorderHelper.Dec(nowIdx);
-                ModLogger.Debug("继续");
             }
 
             waitingKeyLock = true;
