@@ -13,13 +13,13 @@ namespace BetterModManager.UI
     public static class RestartEntry
     {
         private const string RestartBtnName = "Btn_RestartGame";
-        private static Sprite? _restartSprite;
+        private static Sprite RestartSprite => IconGenerator.Restart;
 
         public static void Setup(ModManagerUI __instance)
         {
             try
             {
-                // 1. 获取 quitBtn
+                // 获取 quitBtn
                 var quitBtn = MemberAccessor.Get(typeof(ModManagerUI), "quitBtn")
                                             .GetValue<ModManagerUI, Button>(__instance);
 
@@ -28,7 +28,7 @@ namespace BetterModManager.UI
                 // 检查是否已存在 (注意：去父级下找)
                 if (quitBtn.transform.parent.Find(RestartBtnName) != null) return;
 
-                // 2. 创建
+                // 创建
                 CreateRestartButton(quitBtn);
             }
             catch (Exception ex)
@@ -87,7 +87,6 @@ namespace BetterModManager.UI
             newBtn.onClick.AddListener(() => OnRestartClicked(newBtn));
 
             float iconSize = 48f;
-            if (_restartSprite == null) _restartSprite = IconGenerator.GenerateRestartIcon();
 
             Image bgImg = newBtn.targetGraphic as Image ?? newBtn.GetComponent<Image>();
 
@@ -98,7 +97,7 @@ namespace BetterModManager.UI
             {
                 if (img != bgImg && img.gameObject != newBtn.gameObject)
                 {
-                    img.sprite = _restartSprite;
+                    img.sprite = RestartSprite;
                     img.GetComponent<RectTransform>().sizeDelta = new Vector2(iconSize, iconSize);
                     img.gameObject.SetActive(true);
                     iconReplaced = true;
@@ -110,7 +109,7 @@ namespace BetterModManager.UI
                 GameObject iconObj = new("RestartIcon");
                 iconObj.transform.SetParent(newBtn.transform, false);
                 Image icon = iconObj.AddComponent<Image>();
-                icon.sprite = _restartSprite;
+                icon.sprite = RestartSprite;
                 icon.raycastTarget = false;
                 var texts = newBtn.GetComponentsInChildren<TextMeshProUGUI>(true);
                 if (texts.Length > 0) icon.color = texts[0].color;
