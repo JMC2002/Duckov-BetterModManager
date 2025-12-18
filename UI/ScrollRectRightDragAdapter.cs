@@ -14,7 +14,7 @@ namespace BetterModManager.UI
     {
         public bool allowRightButton = true;
 
-        private ScrollRect scrollRect;
+        private ScrollRect scrollRect = default!;
 
         private void Awake()
         {

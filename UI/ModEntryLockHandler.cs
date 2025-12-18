@@ -43,7 +43,7 @@ namespace BetterModManager.UI
                 return;
             }
 
-            var anchorBtn = MemberAccessor.Get(typeof(ModEntry), "btnReorderUp").GetValue<ModEntry, Button>(_modEntry);
+            var anchorBtn = MemberAccessor.Get(typeof(ModEntry), "btnReorderUp").GetValue<ModEntry, Button>(_modEntry!);
             if (anchorBtn == null) return;
             Transform parent = anchorBtn.transform.parent;
 

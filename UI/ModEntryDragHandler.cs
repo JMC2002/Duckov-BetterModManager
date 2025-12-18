@@ -12,7 +12,7 @@ namespace BetterModManager.UI
 {
     public class ModEntryDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler
     {
-        private RectTransform rectTransform;
+        private RectTransform rectTransform = default!;
         private CanvasGroup? canvasGroup;
         private Vector2 initialPosition;
         private Transform? initialParent;
@@ -20,9 +20,9 @@ namespace BetterModManager.UI
         private float startY;
         private int initialSiblingIndex;
 
-        private ModEntry modEntry;
+        private ModEntry modEntry = default!;
         private ScrollRectRightDragAdapter? rightRect;
-        private ModManagerUI master;
+        private ModManagerUI master = default!;
         private bool dragStarted = false;
         private float dragStartTime;
         private Vector2 dragStartPos;

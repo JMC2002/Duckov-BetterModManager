@@ -10,9 +10,9 @@ namespace BetterModManager.UI
 {
     public class ModEntryPinHandler : MonoBehaviour
     {
-        private ModEntry _modEntry;
+        private ModEntry _modEntry = default!;
         private ModInfo _modInfo;
-        private Button _pinBtn;
+        private Button _pinBtn = default!;
         private bool _isPinned;
 
         public void Setup(ModEntry entry)
