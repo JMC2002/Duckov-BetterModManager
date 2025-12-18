@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using Duckov.Modding;
+﻿using Duckov.Modding;
 using JmcModLib.Storage;
-using JmcModLib.Utils;  
+using JmcModLib.Utils;
+using System.Reflection;
 
 namespace BetterModManager.Utils
 {
