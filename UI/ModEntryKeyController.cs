@@ -1,9 +1,9 @@
 ﻿using Duckov.Modding.UI;
-using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Duckov.Modding;
 using JmcModLib.Utils;
 using BetterModManager.Utils;
 
@@ -11,226 +11,189 @@ namespace BetterModManager.UI
 {
     public class ModEntryKeyController : MonoBehaviour, IPointerClickHandler
     {
-        private CanvasGroup canvasGroup; // 用于控制透明度的 CanvasGroup
+        private CanvasGroup canvasGroup = default!; // 用于控制透明度的 CanvasGroup
+        private ModEntry _entry = default!;
+        private ModInfo _info; // 缓存 ModInfo
 
         private const float SelectedAlpha = 0.5f; // 选中时的透明度
         private const float DeselectAlpha = 1f;  // 恢复原色时的透明度
 
-        private static ModEntryKeyController? currentlySelectedController; // 记录当前选中的条目
-        public static bool isListening = false; // 是否监听键盘或者鼠标事件
+        // 全局状态
+        public static string? LastSelectedId = null;
+        public static bool IsGlobalListening = false;
 
         private int nowIdx;
-        public static int? preIdx = null;
-        private static bool waitingKeyLock = true;  // 用于防止重复触发按键
+        private bool waitingKeyLock = true;  // 用于防止重复触发按键
 
-        private static KeyCode[] upKeys = { KeyCode.W, KeyCode.UpArrow }; // 上键（默认为W和方向上）
-        private static KeyCode[] downKeys = { KeyCode.S, KeyCode.DownArrow }; // 下键（默认为S和方向下）
-        private static KeyCode[] enterKeys = { KeyCode.Return, KeyCode.Escape }; // 退出键（默认为回车和ESC）
+        private bool _pendingResumeSelection = false;
+
+        private static readonly KeyCode[] upKeys = [KeyCode.W, KeyCode.UpArrow]; // 上键（默认为W和方向上）
+        private static readonly KeyCode[] downKeys = [KeyCode.S, KeyCode.DownArrow]; // 下键（默认为S和方向下）
+        private static readonly KeyCode[] enterKeys = [KeyCode.Return, KeyCode.Escape]; // 退出键（默认为回车和ESC）
 
         private static bool GetKeys(KeyCode[] keys) => keys.Any(key => Input.GetKeyDown(key));
         private static bool GetReturn() => GetKeys(enterKeys);
         private static bool GetUp() => GetKeys(upKeys);
         private static bool GetDown() => GetKeys(downKeys);
 
-
+        // 当物体被激活时（SetActive(true)），检查是否有待处理任务
         private void OnEnable()
         {
+            if (_pendingResumeSelection)
+            {
+                _pendingResumeSelection = false;
+                StartCoroutine(ResumeSelectionRoutine());
+            }
         }
 
-        // 在对象禁用时停止监听
         private void OnDisable()
         {
-            ModLogger.Debug($"{ReorderHelper.GetName(nowIdx)}: OnDisable");
-            Reset();
+            StopAllCoroutines();
+            ResetColor();
+            // 清除挂起的任务，防止逻辑错乱
+            _pendingResumeSelection = false;
         }
 
-        public void Setup(ModEntry modEntry, int index)
+        public void Setup(ModEntry modEntry, ModInfo info, int index)
         {
-            ModLogger.Debug($"{ReorderHelper.GetName(nowIdx)}: 进入Setup");
+            _entry = modEntry;
+            _info = info; // 缓存起来
             this.nowIdx = index;
-            // 获取 ModEntry 上的 CanvasGroup
-            canvasGroup = modEntry.GetComponent<CanvasGroup>();
-
-            if (canvasGroup == null)
-            {
-                // 如果没有 CanvasGroup，添加一个新的
-                canvasGroup = modEntry.gameObject.AddComponent<CanvasGroup>();
-            }
+          
+            canvasGroup = modEntry.GetComponent<CanvasGroup>() ?? modEntry.gameObject.AddComponent<CanvasGroup>();
 
             // 设置初始透明度
             canvasGroup.alpha = DeselectAlpha; // 初始状态为完全可见
 
-            ModLogger.Debug($"preIdx: {(preIdx != null ? preIdx : "空")}, index: {index}");
-            // 衔接上次按键移动排序的状态
-            if (preIdx != null && preIdx == index)
+            // 重置标记，防止复用脏数据
+            _pendingResumeSelection = false;
+
+            // 如果全局都没在监听，直接返回，不要做任何字符串 ID 生成。
+            if (!IsGlobalListening) return;
+
+            // 只有在监听模式下，才去算自己的 ID
+            string myId = _info.GetUniqueId();
+
+            // 只有 ID 匹配，才启动协程
+            if (LastSelectedId == myId)
             {
-                ModLogger.Debug("测试");
-                try
+                // 检查物体是否激活
+                if (gameObject.activeInHierarchy)
                 {
-                    PointerClick();
+                    // 如果已激活，直接启动
+                    StartCoroutine(ResumeSelectionRoutine());
                 }
-                catch (Exception ex)
+                else
                 {
-                    ModLogger.Error("Test出现问题", ex);
+                    // 如果未激活（Setup 在 SetActive 之前执行），标记为待处理
+                    // 等待 OnEnable 自动触发
+                    _pendingResumeSelection = true;
                 }
-            }
-            else
-            {
-                ModLogger.Debug("走else");
             }
         }
 
-        private void PointerClick()
+        private IEnumerator ResumeSelectionRoutine()
         {
-            // 设置当前点击条目的透明度
-            if (canvasGroup != null)
-            {
-                ModLogger.Debug("设置alpha");
-                canvasGroup.alpha = SelectedAlpha;
-                canvasGroup.blocksRaycasts = false;
-                Canvas.ForceUpdateCanvases();
-            }
-            else
-            {
-                ModLogger.Warn("当前canvasGroup为空!");
-            }
+            // 等待一帧让 UI 布局稳定
+            yield return null;
 
-                // 记录当前选中的条目
-                currentlySelectedController = this;
-
-            // 只有在当前对象是激活状态下才开始监听
             if (gameObject.activeInHierarchy)
             {
-                ModLogger.Debug("当前激活");
+                // 恢复视觉高亮
+                if (canvasGroup != null)
+                {
+                    canvasGroup.alpha = SelectedAlpha;
+                    canvasGroup.blocksRaycasts = false;
+                }
+                // 恢复监听逻辑
                 StartListening();
             }
-            else
-            {
-                ModLogger.Debug("当前未激活");
-                // 如果当前GameObject非激活状态，延迟启动
-                StartCoroutine(WaitForActivationAndStartListening());
-            }
         }
 
-        private IEnumerator WaitForActivationAndStartListening()
-        {
-            // 在激活状态改变时进行循环检查，确保对象激活
-            while (!gameObject.activeInHierarchy)
-            {
-                yield return null;  // 等待下一帧继续检查
-            }
-
-            // 激活后再启动监听
-            StartListening();
-        }
-
-        // 点击时，改变透明度并记录选中的条目
         public void OnPointerClick(PointerEventData eventData)
         {
-            ModLogger.Debug("触发OnPointerClick");
-            ModLogger.Debug($"当前idx为，{nowIdx}");
-            if (currentlySelectedController != null && currentlySelectedController == this)
-            {
-                ModLogger.Debug("重复点击，取消选中");
+            // 点击时才生成 ID，这是低频操作，不影响性能
+            string myId = _info.GetUniqueId();
 
-                // 置空，防止下一次点击不生效
-                currentlySelectedController = null;
-                return;
-            }
+            if (IsGlobalListening && LastSelectedId == myId) return;
 
-            PointerClick();
-
-            ModLogger.Info($"Mod '{ReorderHelper.GetName(nowIdx)}' 被点击，蒙版效果激活");
+            EnterSelection(myId);
         }
 
-        // 恢复颜色
-        public void ResetColor()
+        private void EnterSelection(string id)
         {
+            LastSelectedId = id;
+            IsGlobalListening = true;
+
             if (canvasGroup != null)
             {
-                canvasGroup.alpha = DeselectAlpha;
+                canvasGroup.alpha = SelectedAlpha;
+                canvasGroup.blocksRaycasts = false;
             }
+
+            StartListening();
+            ModLogger.Info($"选中 Mod: {_info.name}");
         }
 
         public void StartListening()
         {
-            if (isListening)
-            {
-                ModLogger.Debug("已经在监听，跳过启动");
-                return;
-            }
-
-            ModLogger.Debug("开始监听输入事件");
-            isListening = true;
-
-            // 启动监听键盘按键事件
-            StartCoroutine(WaitForReturn());
-            StartCoroutine(WaitForKeyPress());
-        }
-
-        // 停止监听
-        public void StopListening()
-        {
-            ModLogger.Info("停止监听输入事件");
-            isListening = false;
             StopAllCoroutines();
+            StartCoroutine(WaitForInput());
         }
 
-        // 监听鼠标点击事件
-        private IEnumerator WaitForReturn()
+        private IEnumerator WaitForInput()
         {
-            // 等待直到鼠标按下事件触发
-            yield return new WaitUntil(() => isListening && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || GetReturn()));
+            // 缓存当前 ID，避免循环里反复 Generate string
+            string cachedId = _info.GetUniqueId();
 
-            if (canvasGroup != null)
+            while (IsGlobalListening && LastSelectedId == cachedId)
             {
-                ModLogger.Trace($"当前canvasGroup.alpha: {canvasGroup.alpha}");
-            }
+                if (GetReturn() || Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
+                {
+                    ExitSelection();
+                    yield break;
+                }
 
-            if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
-            {
-                ModLogger.Info("检测到鼠标点击，取消选中");
-            }
-            else
-            {
-                ModLogger.Info("检测到按下回车或ESC，取消选中");
-            }
+                if (waitingKeyLock && (GetUp() || GetDown()))
+                {
+                    waitingKeyLock = false;
+                    var name = ReorderHelper.GetName(nowIdx);
+                    ModLogger.Debug($"{name}: ");
+                    if (GetUp())
+                    {
+                        ModLogger.Debug($"按下了 W 或 上箭头键");
+                        ReorderHelper.Inc(nowIdx);
+                    }
+                    else
+                    {
+                        ModLogger.Debug($"按下了 S 或 下箭头键");
+                        ReorderHelper.Dec(nowIdx);
+                    }
 
-            Reset();
-            preIdx = null;
-            ModLogger.Trace("处理点击事件完毕");
+                    // 移动后 UI 会重建，本脚本会被 Disable，循环自然终止
+                }
+
+                if (!waitingKeyLock && !GetUp() && !GetDown())
+                {
+                    waitingKeyLock = true;
+                }
+
+                yield return null;
+            }
         }
 
-        // 键盘事件监听
-        private IEnumerator WaitForKeyPress()
+        private void ExitSelection()
         {
-            yield return new WaitUntil(() => isListening && waitingKeyLock && (GetUp() || GetDown()));
-            ModLogger.Trace("WaitForKeyPress被触发");
-            waitingKeyLock = false;
-            var name = ReorderHelper.GetName(nowIdx);
-            ModLogger.Debug($"{name}: ");
-            // 检测 W 或 上键
-            if (GetUp())
-            {
-                ModLogger.Debug($"按下了 W 或 上箭头键");
-                ReorderHelper.Inc(nowIdx);
-            }
-            else
-            {
-                ModLogger.Debug($"按下了 S 或 下箭头键");
-                ReorderHelper.Dec(nowIdx);
-            }
-
-            waitingKeyLock = true;
-        }
-
-        private void Reset()
-        {
+            IsGlobalListening = false;
+            LastSelectedId = null;
             ResetColor();
-            currentlySelectedController = null;
-            if (isListening)
-                StopListening();
-            canvasGroup.blocksRaycasts = true;
+            canvasGroup?.blocksRaycasts = true;
+        }
+
+        public void ResetColor()
+        {
+            canvasGroup?.alpha = DeselectAlpha;
+            canvasGroup?.blocksRaycasts = true;     // 防止其他条目复用时无法点击
         }
     }
 }
