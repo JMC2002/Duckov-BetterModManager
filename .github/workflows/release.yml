@@ -1,0 +1,125 @@
+﻿name: Release Mod
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # === 1. 自动从 C# 代码提取配置 ===
+      - name: Auto-detect Configuration from C#
+        id: auto_config
+        run: |
+          # 1. 查找 VersionInfo.cs 文件
+          # 我们假设它在某个 Core 目录下，或者直接全库搜索
+          CS_FILE=$(find . -name "VersionInfo.cs" -print -quit)
+          
+          if [ -z "$CS_FILE" ]; then
+            echo "Error: Could not find 'VersionInfo.cs' in the repository."
+            exit 1
+          fi
+          echo "Found VersionInfo at: $CS_FILE"
+
+          # 2. 使用正则从 C# 代码中提取 Name 和 Version
+          # 匹配: public const string Name = "提取这里";
+          # sed -E 's/.*Name\s*=\s*"(.*)";.*/\1/' 是核心正则逻辑
+          
+          RAW_NAME=$(grep 'public const string Name' "$CS_FILE" | sed -E 's/.*Name\s*=\s*"(.*)";.*/\1/')
+          # 去除可能存在的首尾空格 (xargs)
+          MOD_NAME=$(echo "$RAW_NAME" | xargs)
+          
+          RAW_VERSION=$(grep 'public const string Version' "$CS_FILE" | sed -E 's/.*Version\s*=\s*"(.*)";.*/\1/')
+          MOD_VERSION=$(echo "$RAW_VERSION" | xargs)
+
+          echo "Extracted Name: [$MOD_NAME]"
+          echo "Extracted Version: [$MOD_VERSION]"
+
+          # 3. 自动定位 MOD 文件夹路径
+          # 逻辑：在当前目录下（或深入一级）寻找与 MOD_NAME 同名的文件夹
+          TARGET_DIR=$(find . -maxdepth 2 -type d -name "$MOD_NAME" -not -path '*/.*' -print -quit)
+
+          if [ -z "$TARGET_DIR" ]; then
+            echo "Error: Folder named '$MOD_NAME' not found!"
+            echo "Please ensure the folder name matches the 'Name' constant in VersionInfo.cs"
+            exit 1
+          fi
+
+          echo "Found Mod Folder: $TARGET_DIR"
+
+          # 4. 导出环境变量供后续步骤使用
+          echo "MOD_PATH=$TARGET_DIR" >> $GITHUB_ENV
+          echo "VERSION=$MOD_VERSION" >> $GITHUB_ENV
+          
+          # 设置压缩包名称: Name_Version.zip
+          echo "ZIP_FILENAME=${MOD_NAME}_${MOD_VERSION}.zip" >> $GITHUB_ENV
+
+      # === 2. 提取 CHANGELOG.md (逻辑不变) ===
+      - name: Extract Changelog
+        id: changelog_reader
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            // 这里使用 C# 提取出来的版本号，确保一致性
+            const version = process.env.VERSION;
+            
+            const changelogPath = './CHANGELOG.md';
+            if (!fs.existsSync(changelogPath)) return `Release v${version}`;
+            
+            const content = fs.readFileSync(changelogPath, 'utf8');
+            const lines = content.split('\n');
+            let extract = [];
+            let isRecording = false;
+
+            // 匹配 ## [1.8.3] 这种格式
+            const escapedVersion = version.replace(/\./g, '\\.');
+            const targetHeaderRegex = new RegExp(`^##\\s+\\[${escapedVersion}\\]`);
+            const anyHeaderRegex = /^##\s+\[/;
+
+            for (const line of lines) {
+              if (isRecording && anyHeaderRegex.test(line)) break;
+              if (isRecording) extract.push(line);
+              if (!isRecording && targetHeaderRegex.test(line)) isRecording = true;
+            }
+            
+            const notes = extract.join('\n').trim();
+            if (!notes) {
+                console.log('Log not found for ' + version);
+                core.setOutput('notes', `Release v${version}`);
+            } else {
+                core.setOutput('notes', notes);
+            }
+        env:
+          VERSION: ${{ env.VERSION }}
+
+      # === 3. 压缩文件夹 ===
+      - name: Zip Mod Folder
+        run: |
+          parent_dir=$(dirname "${{ env.MOD_PATH }}")
+          folder_name=$(basename "${{ env.MOD_PATH }}")
+          
+          cd "$parent_dir"
+          zip -r "${{ github.workspace }}/${{ env.ZIP_FILENAME }}" "$folder_name" -x "*.git*" "*.vscode*" "*/bin/*" "*/obj/*"
+
+      # === 4. 发布 ===
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ env.ZIP_FILENAME }}
+          # 这里的 name 使用 Tag 还是 C# 版本？
+          # 建议使用 GitHub Ref Name (v1.8.3) 作为 Release 标题，保持 Git 习惯
+          name: ${{ github.ref_name }}
+          body: ${{ steps.changelog_reader.outputs.notes }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
