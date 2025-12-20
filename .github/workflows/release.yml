@@ -63,46 +63,72 @@ jobs:
           # 设置压缩包名称: Name_Version.zip
           echo "ZIP_FILENAME=${MOD_NAME}_${MOD_VERSION}.zip" >> $GITHUB_ENV
 
-      # === 2. 提取 CHANGELOG.md (逻辑不变) ===
-      - name: Extract Changelog
+      # === 提取 CHANGELOG.md 内容与标题 ===
+      - name: Extract Changelog and Title
         id: changelog_reader
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            // 这里使用 C# 提取出来的版本号，确保一致性
             const version = process.env.VERSION;
             
             const changelogPath = './CHANGELOG.md';
-            if (!fs.existsSync(changelogPath)) return `Release v${version}`;
             
-            const content = fs.readFileSync(changelogPath, 'utf8');
-            const lines = content.split('\n');
-            let extract = [];
-            let isRecording = false;
+            // 默认兜底标题 (如果没找到文件)
+            let releaseTitle = `[${version}]`; 
+            let notes = '';
 
-            // 匹配 ## [1.8.3] 这种格式
-            const escapedVersion = version.replace(/\./g, '\\.');
-            const targetHeaderRegex = new RegExp(`^##\\s+\\[${escapedVersion}\\]`);
-            const anyHeaderRegex = /^##\s+\[/;
+            if (fs.existsSync(changelogPath)) {
+              const content = fs.readFileSync(changelogPath, 'utf8');
+              const lines = content.split('\n');
+              
+              let extract = [];
+              let isRecording = false;
 
-            for (const line of lines) {
-              if (isRecording && anyHeaderRegex.test(line)) break;
-              if (isRecording) extract.push(line);
-              if (!isRecording && targetHeaderRegex.test(line)) isRecording = true;
+              // 匹配: ## [1.8.3] ...
+              const escapedVersion = version.replace(/\./g, '\\.');
+              const targetHeaderRegex = new RegExp(`^##\\s+\\[${escapedVersion}\\]`);
+              const anyHeaderRegex = /^##\s+\[/;
+
+              for (const line of lines) {
+                // 1. 遇到下一个版本标题 -> 停止
+                if (isRecording && anyHeaderRegex.test(line)) {
+                  break;
+                }
+                
+                // 2. 正在录制 -> 存入内容
+                if (isRecording) {
+                  extract.push(line);
+                }
+                
+                // 3. 找到目标版本 -> 开始录制并提取标题
+                if (!isRecording && targetHeaderRegex.test(line)) {
+                  isRecording = true;
+                  // 去掉行首的 "## "，保留 "[1.8.3] - 2025-12-19"
+                  releaseTitle = line.replace(/^##\s+/, '').trim();
+                }
+              }
+              
+              notes = extract.join('\n').trim();
             }
-            
-            const notes = extract.join('\n').trim();
+
+            // 如果没找到对应的日志，给个默认提示
             if (!notes) {
                 console.log('Log not found for ' + version);
-                core.setOutput('notes', `Release v${version}`);
-            } else {
-                core.setOutput('notes', notes);
+                notes = `Release v${version}`;
+                // 如果没找到日志，标题也只能用默认的
+                if (releaseTitle === `[${version}]`) releaseTitle = `v${version}`;
             }
+
+            console.log(`Extracted Title: ${releaseTitle}`);
+            
+            // 输出两个变量: title 和 notes
+            core.setOutput('title', releaseTitle);
+            core.setOutput('notes', notes);
         env:
           VERSION: ${{ env.VERSION }}
 
-      # === 3. 压缩文件夹 ===
+      # === 压缩文件夹 ===
       - name: Zip Mod Folder
         run: |
           parent_dir=$(dirname "${{ env.MOD_PATH }}")
@@ -111,14 +137,16 @@ jobs:
           cd "$parent_dir"
           zip -r "${{ github.workspace }}/${{ env.ZIP_FILENAME }}" "$folder_name" -x "*.git*" "*.vscode*" "*/bin/*" "*/obj/*"
 
-      # === 4. 发布 ===
+      # === 发布 ===
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: ${{ env.ZIP_FILENAME }}
-          # 这里的 name 使用 Tag 还是 C# 版本？
-          # 建议使用 GitHub Ref Name (v1.8.3) 作为 Release 标题，保持 Git 习惯
-          name: ${{ github.ref_name }}
+          
+          # 使用提取出来的标题
+          # 结果示例: "[1.8.3] - 2025-12-19"
+          name: ${{ steps.changelog_reader.outputs.title }}
+          
           body: ${{ steps.changelog_reader.outputs.notes }}
           generate_release_notes: false
         env:
