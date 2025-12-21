@@ -9,14 +9,15 @@
 Steam版本直接在创意工坊订阅即可，👉 [创意工坊页面](https://steamcommunity.com/sharedfiles/filedetails/?id=3600174953)
 
 其他版本可以自行编译，或者在[📦 Releases](https://github.com/JMC2002/Duckov-BetterModManager/releases)界面下载BetterModManager.zip后解压到游戏安装目录下的Mods
-目录下（没有就新建一个），文件结构如下：
+目录下（没有就新建一个），** 需要安装前置Mod [JmcModLib](https://github.com/JMC2002/JmcModLib) **，文件结构如下：
+
 ```sh
 -- Escape from Duckov
     |-- Duckov.exe
     |-- Duckov_Data
          |-- Mods
+              |-- JmcModLib
               |-- BetterModManager
-                   |-- 0Harmony.dll
                    |-- BetterModManager.dll
                    |-- info.ini
                    |-- preview.png
@@ -39,9 +40,11 @@ Steam版本直接在创意工坊订阅即可，👉 [创意工坊页面](https:/
 
 
 ## 🔔 3. 提醒
+- 本 MOD 需要前置：[JmcModLib](https://github.com/JMC2002/JmcModLib)
+  需要安装此MOD才能正常使用，但是不依赖彼此加载顺序，仅需将这两个MOD都启用即可；若未启用或未订阅前置，会弹窗提醒，弹窗参考[前置依赖无序化模板](https://steamcommunity.com/sharedfiles/filedetails/?id=3624342813)
 - 本MOD可安全卸载，理论上完全不会影响存档
 - 首次启动MOD需要重启游戏
-- 本MOD不依赖任何前置，理论上不依赖任何顺序，但如果你是Mac电脑且订阅了Harmony.lib模组且本模组无法生效，将本模组的顺序置于该模组前或许会有帮助
+
 - 全部启用/禁用的原理是从第一条MOD开始从上至下依次启用，遇到MOD条目过多的情况卡一下是正常现象
 - 如果你想全部禁用但发现选择框未勾选，请先勾选
  
