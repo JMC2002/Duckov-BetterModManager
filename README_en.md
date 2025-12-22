@@ -3,15 +3,15 @@
 ## 0. Installation
 For the Steam version, simply subscribe on the Workshop 👉 [Workshop page](https://steamcommunity.com/sharedfiles/filedetails/?id=3600174953)
 
-For other versions, you can compile it yourself or download the BetterModManager.zip from the [📦 Releases](https://github.com/JMC2002/Duckov-BetterModManager/releases) page, and extract it into the "Mods" folder in the game installation directory (create the folder if it doesn’t exist). The file structure will look like this:
+For other versions, you can compile it yourself or download the BetterModManager.zip from the [📦 Releases](https://github.com/JMC2002/Duckov-BetterModManager/releases) page, and extract it into the "Mods" folder in the game installation directory (create the folder if it doesn’t exist).**Need this Mod: [JmcModLib](https://github.com/JMC2002/JmcModLib)**, The file structure will look like this:
 
 ```sh
 -- Escape from Duckov
     |-- Duckov.exe
     |-- Duckov_Data
          |-- Mods
+              |-- JmcModLib
               |-- BetterModManager
-                   |-- 0Harmony.dll
                    |-- BetterModManager.dll
                    |-- info.ini
                    |-- preview.png
@@ -34,9 +34,9 @@ Tired of clicking endlessly to sort or enable/disable mods? Use this mod to pin 
 - You can now scroll the interface by dragging with the right mouse button (same behavior as left-click dragging without mods).
 
 ## 🔔 3. Notes
+- This mod  depend on [JmcModLib](https://github.com/JMC2002/JmcModLib)
 - This mod can be safely uninstalled and will not affect your save files.
 - A restart is required the first time the mod is activated.
-- This mod does not depend on any prerequisites, but if you're using a Mac and have subscribed to the Harmony.lib mod which prevents this mod from working, try moving this mod above it in the load order.
 - The principle behind enabling/disabling all mods is to enable them sequentially from the first mod entry downwards. It is normal to experience a brief delay if there are too many mod entries.
 - If you want to disable all mods but notice the checkbox is not checked, please check the box first.
 

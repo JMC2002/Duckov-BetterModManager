@@ -9,7 +9,7 @@
 Steam版本直接在创意工坊订阅即可，👉 [创意工坊页面](https://steamcommunity.com/sharedfiles/filedetails/?id=3600174953)
 
 其他版本可以自行编译，或者在[📦 Releases](https://github.com/JMC2002/Duckov-BetterModManager/releases)界面下载BetterModManager.zip后解压到游戏安装目录下的Mods
-目录下（没有就新建一个），** 需要安装前置Mod [JmcModLib](https://github.com/JMC2002/JmcModLib) **，文件结构如下：
+目录下（没有就新建一个），**需要安装前置Mod [JmcModLib](https://github.com/JMC2002/JmcModLib)**，文件结构如下：
 
 ```sh
 -- Escape from Duckov
