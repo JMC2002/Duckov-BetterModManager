@@ -28,10 +28,10 @@ jobs:
           CS_FILE=$(find . -name "VersionInfo.cs" -print -quit)
           if [ -z "$CS_FILE" ]; then echo "VersionInfo.cs not found"; exit 1; fi
 
-          RAW_NAME=$(grep 'public const string Name' "$CS_FILE" | sed -E 's/.*Name\s*=\s*"(.*)";.*/\1/')
+          RAW_NAME=$(grep 'const string Name' "$CS_FILE" | sed -E 's/.*Name\s*=\s*"(.*)";.*/\1/')
           MOD_NAME=$(echo "$RAW_NAME" | xargs)
           
-          RAW_VERSION=$(grep 'public const string Version' "$CS_FILE" | sed -E 's/.*Version\s*=\s*"(.*)";.*/\1/')
+          RAW_VERSION=$(grep 'const string Version' "$CS_FILE" | sed -E 's/.*Version\s*=\s*"(.*)";.*/\1/')
           MOD_VERSION=$(echo "$RAW_VERSION" | xargs)
 
           # 自动寻找文件夹
@@ -120,13 +120,37 @@ jobs:
           VERSION: ${{ env.VERSION }}
           PREV_TAG: ${{ env.PREV_TAG }}
 
-      # === 压缩 ===
-      - name: Zip Mod Folder
+      - name: Prepare and Zip
         run: |
-          parent_dir=$(dirname "${{ env.MOD_PATH }}")
-          folder_name=$(basename "${{ env.MOD_PATH }}")
-          cd "$parent_dir"
-          zip -r "${{ github.workspace }}/${{ env.ZIP_FILENAME }}" "$folder_name" -x "*.git*" "*.vscode*" "*/bin/*" "*/obj/*"
+          STAGING_DIR="temp_staging"
+          mkdir -p "$STAGING_DIR"
+          
+          FOLDER_NAME=$(basename "${{ env.MOD_PATH }}")
+          
+          echo "🔨 Creating staging area..."
+
+          # 把 MOD 文件夹复制到临时目录中
+          cp -r "${{ env.MOD_PATH }}" "$STAGING_DIR/"
+
+          # 把根目录的文档复制进 临时目录下的 MOD 文件夹
+          DOC_FILES=("README.md" "README_en.md" "CHANGELOG.md" "LICENSE.txt" "LICENSE")
+          
+          echo "📄 Injecting documents into package..."
+          for file in "${DOC_FILES[@]}"; do
+            if [ -f "$file" ]; then
+              cp "$file" "$STAGING_DIR/$FOLDER_NAME/"
+              echo "   ✅ Included: $file"
+            fi
+          done
+
+          # 进入临时目录进行压缩
+          cd "$STAGING_DIR"
+          
+          echo "📦 Zipping..."
+          zip -r "${{ github.workspace }}/${{ env.ZIP_FILENAME }}" "$FOLDER_NAME" \
+            -x "*.git*" "*.vscode*" "*/bin/*" "*/obj/*" "*/Thumbs.db" "*.DS_Store"
+
+          echo "🎉 Zip created: ${{ env.ZIP_FILENAME }}"
 
       # === 发布 ===
       - name: Create Release
