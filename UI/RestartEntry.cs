@@ -142,24 +142,44 @@ namespace BetterModManager.UI
 
             // 获取当前游戏 exe 的全路径
             string exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+            string workingDir = System.IO.Path.GetDirectoryName(exePath);
+
+            string sys32 = Environment.GetFolderPath(Environment.SpecialFolder.System);
+            string cmdPath = System.IO.Path.Combine(sys32, "cmd.exe");
+            string timeoutPath = System.IO.Path.Combine(sys32, "timeout.exe");
 
             // 构造 CMD 命令：
             // /c : 执行完关闭
             // timeout /t 2 /nobreak > NUL : 等待 2 秒 (不显示倒计时)
             // && : 等待结束后执行
             // start "" "..." : 启动游戏
-            string cmdArgs = $"/c timeout /t 2 /nobreak > NUL && start \"\" \"{exePath}\"";
+            string cmdArgs = $"/c \"\"{timeoutPath}\" /t 2 /nobreak > NUL && start \"\" /d \"{workingDir}\" \"{exePath}\"\"";
 
             System.Diagnostics.ProcessStartInfo startInfo = new()
             {
-                FileName = "cmd.exe",
+                FileName = cmdPath,
                 Arguments = cmdArgs,
-                UseShellExecute = false,
-                CreateNoWindow = true, // 不显示黑色的 CMD 窗口
-                WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+                UseShellExecute = true,
+                CreateNoWindow = false, // 不显示黑色的 CMD 窗口
+                WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
+                WorkingDirectory = workingDir
             };
 
+            try
+            {
+                ModLogger.Info($"执行命令：{cmdPath}");
             System.Diagnostics.Process.Start(startInfo);
+            }
+            catch (Exception ex)
+            {
+                ModLogger.Error($"重启失败: {ex.Message}");
+                // 如果连这样都失败，尝试最后的保底手段：不延时直接开
+                try
+                {
+                    System.Diagnostics.Process.Start(exePath);
+                }
+                catch { }
+            }
 
             // 立即退出当前游戏
             Application.Quit();
