@@ -64,7 +64,7 @@ namespace BetterModManager.UI
             }
             else
             {
-                ModLogger.Info($"[UI] 读取到真实宽度: {btnWidth}");
+                ModLogger.Debug($"[UI] 读取到真实宽度: {btnWidth}");
             }
 
             newRect.anchorMin = quitRect.anchorMin;
@@ -154,7 +154,7 @@ namespace BetterModManager.UI
             // && : 等待结束后执行
             // start "" "..." : 启动游戏
             string cmdArgs = $"/c \"\"{timeoutPath}\" /t 2 /nobreak > NUL && start \"\" /d \"{workingDir}\" \"{exePath}\"\"";
-
+            
             System.Diagnostics.ProcessStartInfo startInfo = new()
             {
                 FileName = cmdPath,
@@ -168,7 +168,7 @@ namespace BetterModManager.UI
             try
             {
                 ModLogger.Info($"执行命令：{cmdPath}");
-            System.Diagnostics.Process.Start(startInfo);
+                System.Diagnostics.Process.Start(startInfo);
             }
             catch (Exception ex)
             {
